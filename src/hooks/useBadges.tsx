@@ -9,12 +9,19 @@ export const useBadges = (userId?: string) => {
     queryFn: async () => {
       if (!userId) return [];
       
+      console.log('Fetching badges for user:', userId);
+      
       const { data, error } = await supabase
         .from('user_badge_progress')
         .select('*')
         .eq('user_id', userId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching badges:', error);
+        throw error;
+      }
+      
+      console.log('Fetched badge data:', data);
       return data as BadgeProgress[];
     },
     enabled: !!userId,
@@ -27,13 +34,20 @@ export const useEarnedBadges = (userId?: string) => {
     queryFn: async () => {
       if (!userId) return [];
       
+      console.log('Fetching earned badges for user:', userId);
+      
       const { data, error } = await supabase
         .from('user_badge_progress')
         .select('*')
         .eq('user_id', userId)
         .eq('is_earned', true);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching earned badges:', error);
+        throw error;
+      }
+      
+      console.log('Fetched earned badges:', data);
       return data as BadgeProgress[];
     },
     enabled: !!userId,
@@ -46,13 +60,20 @@ export const useAvailableBadges = (userId?: string) => {
     queryFn: async () => {
       if (!userId) return [];
       
+      console.log('Fetching available badges for user:', userId);
+      
       const { data, error } = await supabase
         .from('user_badge_progress')
         .select('*')
         .eq('user_id', userId)
         .eq('is_earned', false);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching available badges:', error);
+        throw error;
+      }
+      
+      console.log('Fetched available badges:', data);
       return data as BadgeProgress[];
     },
     enabled: !!userId,
