@@ -1,11 +1,20 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { UserProfile } from '@/components/badges/UserProfile';
 
 const Index = () => {
+  // In a real app, you'd get this from your auth context
+  // For demo purposes, using a placeholder ID
+  const userId = "demo-user-id";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Badge System</h1>
+          <p className="text-xl text-gray-600">Track your achievements and progress</p>
+        </div>
+        
+        <UserProfile userId={userId} />
       </div>
     </div>
   );
