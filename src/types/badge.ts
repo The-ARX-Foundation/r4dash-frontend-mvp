@@ -21,8 +21,15 @@ export interface UserBadge {
 export interface Task {
   id: string;
   user_id: string;
+  volunteer_id: string;
   title: string;
   description: string | null;
+  location: string | null;
+  status: 'pending' | 'verified' | 'flagged';
+  image_url: string | null;
+  submitted_at: string;
+  verified_by: string | null;
+  verified_at: string | null;
   verified: boolean;
   created_at: string;
 }

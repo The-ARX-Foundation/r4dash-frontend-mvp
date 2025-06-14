@@ -47,30 +47,65 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          image_url: string | null
+          location: string | null
+          status: Database["public"]["Enums"]["task_status"] | null
+          submitted_at: string | null
           title: string
           user_id: string
           verified: boolean | null
+          verified_at: string | null
+          verified_by: string | null
+          volunteer_id: string | null
         }
         Insert: {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
+          location?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          submitted_at?: string | null
           title: string
           user_id: string
           verified?: boolean | null
+          verified_at?: string | null
+          verified_by?: string | null
+          volunteer_id?: string | null
         }
         Update: {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
+          location?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          submitted_at?: string | null
           title?: string
           user_id?: string
           verified?: boolean | null
+          verified_at?: string | null
+          verified_by?: string | null
+          volunteer_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "tasks_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_badge_progress"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "tasks_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "user_badge_progress"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "tasks_volunteer_id_fkey"
+            columns: ["volunteer_id"]
             isOneToOne: false
             referencedRelation: "user_badge_progress"
             referencedColumns: ["user_id"]
@@ -141,10 +176,13 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: { user_uuid: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      task_status: "pending" | "verified" | "flagged"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -259,6 +297,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      task_status: ["pending", "verified", "flagged"],
+    },
   },
 } as const
