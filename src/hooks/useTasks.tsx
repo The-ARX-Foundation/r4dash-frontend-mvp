@@ -35,11 +35,10 @@ export const useOpenTasks = () => {
     queryFn: async () => {
       console.log('Fetching open tasks');
       
-      // We need to use a raw query since 'open' status isn't in the enum
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
-        .filter('status', 'eq', 'open' as any)
+        .eq('status', 'open')
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -62,7 +61,7 @@ export const usePendingTasks = () => {
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
-        .in('status', ['completed', 'pending'] as any)
+        .in('status', ['completed', 'pending'])
         .order('submitted_at', { ascending: true });
       
       if (error) {
@@ -91,7 +90,7 @@ export const useTaskCreation = () => {
           location: taskData.location,
           image_url: taskData.image_url,
           user_id: taskData.user_id,
-          status: 'open' as any
+          status: 'open'
         })
         .select()
         .single();
@@ -126,12 +125,12 @@ export const useTaskClaim = () => {
       const { data, error } = await supabase
         .from('tasks')
         .update({
-          status: claim.status as any,
+          status: claim.status,
           claimed_by: claim.claimed_by,
           claimed_at: claim.claimed_at
         })
         .eq('id', taskId)
-        .filter('status', 'eq', 'open' as any)
+        .eq('status', 'open')
         .select()
         .single();
       
@@ -160,7 +159,7 @@ export const useTaskCompletion = () => {
       const { data, error } = await supabase
         .from('tasks')
         .update({
-          status: completion.status as any,
+          status: completion.status,
           image_url: completion.image_url,
           submitted_at: completion.submitted_at,
           volunteer_id: (await supabase.auth.getUser()).data.user?.id
