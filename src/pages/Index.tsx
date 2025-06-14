@@ -1,16 +1,23 @@
 
 import Navigation from "@/components/ui/navigation";
-import SampleDataCreator from "@/components/SampleDataCreator";
+import RoleBasedActions from "@/components/RoleBasedActions";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAutoSeed } from "@/hooks/useAutoSeed";
 import { Navigate } from "react-router-dom";
 
 const Index = () => {
   const { user, profile, loading } = useAuth();
+  const { isSeeding, isSeeded } = useAutoSeed();
 
-  if (loading) {
+  if (loading || isSeeding) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">
+            {loading ? 'Loading...' : 'Setting up your community dashboard...'}
+          </p>
+        </div>
       </div>
     );
   }
@@ -37,42 +44,91 @@ const Index = () => {
           <p className="text-lg text-indigo-600 font-medium">
             Role: {profile?.role?.charAt(0).toUpperCase() + profile?.role?.slice(1)}
           </p>
+          {isSeeded && (
+            <p className="text-sm text-green-600 mt-2">
+              ✓ Platform ready with sample data
+            </p>
+          )}
         </div>
 
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-                🤝 How it Works
-              </h2>
-              <ul className="space-y-3 text-gray-600">
-                <li className="flex items-start">
-                  <span className="text-indigo-500 mr-2">•</span>
-                  Community members submit help requests
-                </li>
-                <li className="flex items-start">
-                  <span className="text-indigo-500 mr-2">•</span>
-                  Volunteers claim and complete tasks
-                </li>
-                <li className="flex items-start">
-                  <span className="text-indigo-500 mr-2">•</span>
-                  Coordinators verify completed work
-                </li>
-                <li className="flex items-start">
-                  <span className="text-indigo-500 mr-2">•</span>
-                  Everyone earns badges for their contributions
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-                📊 Sample Data
-              </h2>
-              <p className="text-gray-600 mb-4">
-                Get started by adding sample tasks and badges to explore the platform.
-              </p>
-              <SampleDataCreator />
+        <div className="max-w-6xl mx-auto">
+          <RoleBasedActions />
+          
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+              🤝 How it Works
+            </h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2">For Community Members:</h3>
+                <ul className="space-y-2 text-gray-600 text-sm">
+                  <li className="flex items-start">
+                    <span className="text-indigo-500 mr-2">•</span>
+                    Submit help requests when you need assistance
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-indigo-500 mr-2">•</span>
+                    Browse available tasks to help others
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-indigo-500 mr-2">•</span>
+                    Earn badges for your contributions
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2">For {profile?.role?.charAt(0).toUpperCase() + profile?.role?.slice(1)}s:</h3>
+                <ul className="space-y-2 text-gray-600 text-sm">
+                  {profile?.role === 'coordinator' && (
+                    <>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Review and verify submitted tasks
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Manage community volunteer efforts
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Access comprehensive admin dashboard
+                      </li>
+                    </>
+                  )}
+                  {profile?.role === 'scout' && (
+                    <>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Identify community needs through field work
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Perform wellness checks on residents
+                      </li> 
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Submit detailed field assessments
+                      </li>
+                    </>
+                  )}
+                  {(profile?.role === 'volunteer' || !profile?.role) && (
+                    <>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Claim and complete community tasks
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Help neighbors with various needs
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Build stronger community connections
+                      </li>
+                    </>
+                  )}
+                </ul>
+              </div>
             </div>
           </div>
         </div>
