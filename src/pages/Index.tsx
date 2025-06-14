@@ -27,7 +27,7 @@ const Index = () => {
   }
 
   // Redirect to role selection if user doesn't have a role set
-  if (!profile?.role || profile.role === 'volunteer') {
+  if (!profile?.role) {
     return <Navigate to="/role-selection" replace />;
   }
 
@@ -111,7 +111,39 @@ const Index = () => {
                       </li>
                     </>
                   )}
-                  {(profile?.role === 'volunteer' || !profile?.role) && (
+                  {profile?.role === 'medic' && (
+                    <>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Handle urgent medical priority tasks
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Provide medical assistance to community
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Report medical needs and priorities
+                      </li>
+                    </>
+                  )}
+                  {profile?.role === 'communicator' && (
+                    <>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Coordinate communication between volunteers
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Manage information flow and updates
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-indigo-500 mr-2">•</span>
+                        Bridge connections in the community
+                      </li>
+                    </>
+                  )}
+                  {profile?.role === 'volunteer' && (
                     <>
                       <li className="flex items-start">
                         <span className="text-indigo-500 mr-2">•</span>
