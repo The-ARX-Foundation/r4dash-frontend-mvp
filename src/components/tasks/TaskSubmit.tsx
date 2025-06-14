@@ -11,6 +11,7 @@ import { useTaskSubmission } from '@/hooks/useTasks';
 import { uploadTaskImage } from '@/utils/imageUpload';
 import { TaskSubmission } from '@/types/task';
 import { toast } from 'sonner';
+import Navigation from '@/components/ui/navigation';
 
 interface TaskSubmitProps {
   userId: string;
@@ -35,6 +36,12 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size must be less than 5MB');
+        return;
+      }
+      
       setImageFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -64,13 +71,43 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
       },
       (error) => {
         console.error('Error getting location:', error);
-        toast.error('Unable to get location. Please enable location services.');
+        let errorMessage = 'Unable to get location. Please enable location services.';
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location access denied. Please enable location permissions.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location information unavailable.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Location request timed out.';
+            break;
+        }
+        
+        toast.error(errorMessage);
         setIsGettingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000
       }
     );
   };
 
   const onSubmit = async (data: TaskSubmission) => {
+    // Form validation
+    if (!data.title.trim()) {
+      toast.error('Task title is required');
+      return;
+    }
+
+    if (data.title.length > 100) {
+      toast.error('Task title must be less than 100 characters');
+      return;
+    }
+
     try {
       let imageUrl = '';
       
@@ -97,11 +134,14 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-4 pb-20">
       <div className="max-w-md mx-auto">
         <Card>
           <CardHeader>
             <CardTitle className="text-xl font-bold text-center">Submit New Task</CardTitle>
+            <p className="text-sm text-gray-600 text-center">
+              Request help from your community
+            </p>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -114,12 +154,16 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
                       <FormLabel>Task Title *</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="What did you do?" 
+                          placeholder="What do you need help with?" 
                           {...field} 
                           required
+                          maxLength={100}
                         />
                       </FormControl>
                       <FormMessage />
+                      <p className="text-xs text-gray-500">
+                        {field.value.length}/100 characters
+                      </p>
                     </FormItem>
                   )}
                 />
@@ -132,18 +176,24 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
                       <FormLabel>Description</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Tell us more about your task..."
+                          placeholder="Provide more details about what needs to be done..."
                           rows={4}
                           {...field}
+                          maxLength={500}
                         />
                       </FormControl>
                       <FormMessage />
+                      {field.value && (
+                        <p className="text-xs text-gray-500">
+                          {field.value.length}/500 characters
+                        </p>
+                      )}
                     </FormItem>
                   )}
                 />
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Photo</label>
+                  <label className="text-sm font-medium">Photo (Optional)</label>
                   <div className="flex items-center space-x-2">
                     <input
                       type="file"
@@ -170,12 +220,15 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
                         alt="Preview" 
                         className="w-full h-48 object-cover rounded-lg"
                       />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Max file size: 5MB
+                      </p>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Location</label>
+                  <label className="text-sm font-medium">Location (Optional)</label>
                   <div className="flex space-x-2">
                     <Input
                       placeholder="Enter location or use GPS"
@@ -191,10 +244,14 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
                       variant="outline"
                       onClick={getCurrentLocation}
                       disabled={isGettingLocation}
+                      title="Get current location"
                     >
-                      <MapPin className="w-4 h-4" />
+                      <MapPin className={`w-4 h-4 ${isGettingLocation ? 'animate-pulse' : ''}`} />
                     </Button>
                   </div>
+                  {isGettingLocation && (
+                    <p className="text-xs text-blue-600">Getting your location...</p>
+                  )}
                 </div>
 
                 <Button 
@@ -211,6 +268,7 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
           </CardContent>
         </Card>
       </div>
+      <Navigation />
     </div>
   );
 };
