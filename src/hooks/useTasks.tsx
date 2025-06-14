@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Task, TaskSubmission, TaskVerification, TaskClaim, TaskCompletion } from '@/types/task';
@@ -38,7 +37,7 @@ export const useOpenTasks = () => {
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
-        .eq('status', 'open')
+        .in('status', ['open', 'verified'])
         .order('created_at', { ascending: false });
       
       if (error) {

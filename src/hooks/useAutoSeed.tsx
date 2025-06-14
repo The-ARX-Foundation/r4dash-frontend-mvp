@@ -27,7 +27,10 @@ export const useAutoSeed = () => {
   const seedSampleData = async () => {
     setIsSeeding(true);
     try {
-      // Seed tasks
+      // Generate consistent UUIDs for sample users
+      const generateUserId = (index: number) => `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+
+      // Seed tasks with more 'open' status tasks
       const sampleTasks = [
         {
           title: 'Help elderly neighbor with groceries',
@@ -37,8 +40,8 @@ export const useAutoSeed = () => {
           longitude: -73.9554,
           urgency: 'high',
           skill_tags: ['physical', 'elderly-care'],
-          user_id: crypto.randomUUID(),
-          status: 'verified' as const
+          user_id: generateUserId(1),
+          status: 'open' as const
         },
         {
           title: 'Dog walking service needed',
@@ -48,8 +51,8 @@ export const useAutoSeed = () => {
           longitude: -73.9654,
           urgency: 'medium',
           skill_tags: ['pets', 'outdoor'],
-          user_id: crypto.randomUUID(),
-          status: 'pending' as const
+          user_id: generateUserId(2),
+          status: 'open' as const
         },
         {
           title: 'Computer help for senior',
@@ -59,8 +62,41 @@ export const useAutoSeed = () => {
           longitude: -73.9932,
           urgency: 'medium',
           skill_tags: ['technology', 'teaching', 'elderly-care'],
-          user_id: crypto.randomUUID(),
-          status: 'verified' as const
+          user_id: generateUserId(3),
+          status: 'open' as const
+        },
+        {
+          title: 'Moving furniture urgently',
+          description: 'Need help moving a couch and dining table to a new apartment. Have a truck, just need someone strong to help lift and carry.',
+          location: 'Queens, NYC',
+          latitude: 40.7282,
+          longitude: -73.7949,
+          urgency: 'critical',
+          skill_tags: ['physical', 'moving'],
+          user_id: generateUserId(4),
+          status: 'open' as const
+        },
+        {
+          title: 'Tutoring for math homework',
+          description: 'My 10-year-old needs help with 4th grade math homework. Looking for someone patient and good with kids.',
+          location: 'Beverly Hills, CA',
+          latitude: 34.0736,
+          longitude: -118.4004,
+          urgency: 'medium',
+          skill_tags: ['teaching', 'academic', 'children'],
+          user_id: generateUserId(5),
+          status: 'open' as const
+        },
+        {
+          title: 'Yard cleanup assistance',
+          description: 'Need help raking leaves and cleaning up the backyard. Have all tools ready, just need an extra pair of hands.',
+          location: 'Santa Monica, CA',
+          latitude: 34.0195,
+          longitude: -118.4912,
+          urgency: 'low',
+          skill_tags: ['physical', 'outdoor', 'gardening'],
+          user_id: generateUserId(6),
+          status: 'open' as const
         },
         {
           title: 'Emergency childcare needed',
@@ -70,8 +106,19 @@ export const useAutoSeed = () => {
           longitude: -122.4644,
           urgency: 'critical',
           skill_tags: ['childcare', 'emergency'],
-          user_id: crypto.randomUUID(),
-          status: 'pending' as const
+          user_id: generateUserId(7),
+          status: 'open' as const
+        },
+        {
+          title: 'Tech setup for nonprofit',
+          description: 'Small nonprofit needs help setting up new computers and network equipment. Looking for someone with IT experience.',
+          location: 'Mission District, San Francisco, CA',
+          latitude: 37.7599,
+          longitude: -122.4148,
+          urgency: 'medium',
+          skill_tags: ['technology', 'nonprofit', 'networking'],
+          user_id: generateUserId(8),
+          status: 'open' as const
         },
         {
           title: 'Wellness check for elderly resident',
@@ -81,9 +128,20 @@ export const useAutoSeed = () => {
           longitude: -71.0753,
           urgency: 'low',
           skill_tags: ['wellness-check', 'elderly-care'],
-          user_id: crypto.randomUUID(),
-          status: 'open' as const,
+          user_id: generateUserId(9),
+          status: 'verified' as const,
           wellness_check: true
+        },
+        {
+          title: 'Food prep volunteer for shelter',
+          description: 'Local homeless shelter needs help preparing and serving meals. Great way to give back to the community.',
+          location: 'South End, Boston, MA',
+          latitude: 42.3398,
+          longitude: -71.0691,
+          urgency: 'medium',
+          skill_tags: ['cooking', 'community-service', 'volunteer'],
+          user_id: generateUserId(10),
+          status: 'verified' as const
         }
       ];
 
@@ -137,7 +195,7 @@ export const useAutoSeed = () => {
 
       if (!tasksResult.error && !badgesResult.error) {
         setIsSeeded(true);
-        toast.success('Sample data loaded successfully! Explore the platform with realistic tasks and badges.');
+        toast.success('Sample data loaded successfully! 8 tasks are now available to browse and claim.');
       } else {
         toast.error('Some sample data failed to load, but you can still use the platform.');
       }
