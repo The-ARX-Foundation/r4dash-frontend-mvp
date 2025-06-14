@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Upload, MapPin } from 'lucide-react';
+import { Upload, MapPin, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTaskCreation } from '@/hooks/useTasks';
 import { uploadTaskImage } from '@/utils/imageUpload';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import Navigation from '@/components/ui/navigation';
 
 interface TaskCreateProps {
   userId: string;
@@ -20,12 +22,12 @@ const TaskCreate: React.FC<TaskCreateProps> = ({ userId }) => {
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const navigate = useNavigate();
 
   const taskCreation = useTaskCreation();
 
-  // Generate a valid UUID for demo purposes
-  const generateDemoUserId = () => {
-    return 'demo-' + crypto.randomUUID().slice(0, 8) + '-' + crypto.randomUUID().slice(0, 4) + '-' + crypto.randomUUID().slice(0, 4) + '-' + crypto.randomUUID().slice(0, 4) + '-' + crypto.randomUUID().slice(0, 12);
+  const handleBack = () => {
+    navigate('/');
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,16 +62,13 @@ const TaskCreate: React.FC<TaskCreateProps> = ({ userId }) => {
           toast.error('Image upload failed, but task will be created without image');
         }
       }
-
-      // Use a proper UUID format for demo
-      const demoUserId = crypto.randomUUID();
       
       await taskCreation.mutateAsync({
         title: title.trim(),
         description: description.trim() || '',
         location: location.trim() || '',
         image_url: imageUrl,
-        user_id: demoUserId,
+        user_id: userId,
       });
 
       toast.success('Task created successfully! Others can now help complete it.');
@@ -80,6 +79,11 @@ const TaskCreate: React.FC<TaskCreateProps> = ({ userId }) => {
       setLocation('');
       setImage(null);
       setImagePreview(null);
+      
+      // Navigate back to home after successful creation
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     } catch (error) {
       console.error('Error creating task:', error);
       toast.error('Failed to create task. Please try again.');
@@ -89,11 +93,22 @@ const TaskCreate: React.FC<TaskCreateProps> = ({ userId }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-4 pb-20">
       <div className="max-w-md mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle className="text-center">Create New Task</CardTitle>
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleBack}
+                className="p-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <CardTitle className="text-xl font-bold">Create New Task</CardTitle>
+              <div className="w-8" /> {/* Spacer for centering */}
+            </div>
             <p className="text-sm text-gray-600 text-center">
               Post a task for community members to help complete
             </p>
@@ -173,17 +188,28 @@ const TaskCreate: React.FC<TaskCreateProps> = ({ userId }) => {
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={taskCreation.isPending || isUploading}
-              >
-                {taskCreation.isPending || isUploading ? 'Creating Task...' : 'Create Task'}
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={handleBack}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={taskCreation.isPending || isUploading}
+                >
+                  {taskCreation.isPending || isUploading ? 'Creating Task...' : 'Create Task'}
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
       </div>
+      <Navigation />
     </div>
   );
 };

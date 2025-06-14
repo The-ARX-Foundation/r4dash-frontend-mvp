@@ -1,169 +1,137 @@
 
-import Navigation from "@/components/ui/navigation";
-import RoleBasedActions from "@/components/RoleBasedActions";
-import { useAuth } from "@/contexts/AuthContext";
-import { useAutoSeed } from "@/hooks/useAutoSeed";
-import { Navigate } from "react-router-dom";
+import { useAuth } from '@/contexts/AuthContext';
+import { useAutoSeed } from '@/hooks/useAutoSeed';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Search, User, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import Navigation from '@/components/ui/navigation';
+import ManualReseedButton from '@/components/ManualReseedButton';
 
 const Index = () => {
   const { user, profile, loading } = useAuth();
   const { isSeeding, isSeeded } = useAutoSeed();
 
-  if (loading || isSeeding) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            {loading ? 'Loading...' : 'Setting up your community dashboard...'}
-          </p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  // Redirect to role selection if user doesn't have a role set
-  if (!profile?.role) {
-    return <Navigate to="/role-selection" replace />;
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8 pb-24">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Welcome to Community Helper
+    <div className="min-h-screen bg-gray-50 p-4 pb-20">
+      <div className="max-w-md mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center py-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Community Helper
           </h1>
-          <p className="text-xl text-gray-600 mb-4">
-            Connect neighbors in need with those who can help
+          <p className="text-gray-600">
+            Connect, help, and make a difference
           </p>
-          <p className="text-lg text-indigo-600 font-medium">
-            Role: {profile?.role?.charAt(0).toUpperCase() + profile?.role?.slice(1)}
-          </p>
-          {isSeeded && (
-            <p className="text-sm text-green-600 mt-2">
-              ✓ Platform ready with sample data
+          {user && (
+            <p className="text-sm text-blue-600 mt-2">
+              Welcome back, {profile?.name || user.email}!
+              {profile?.role && ` (${profile.role})`}
             </p>
           )}
         </div>
 
-        <div className="max-w-6xl mx-auto">
-          <RoleBasedActions />
-          
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-              🤝 How it Works
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2">For Community Members:</h3>
-                <ul className="space-y-2 text-gray-600 text-sm">
-                  <li className="flex items-start">
-                    <span className="text-indigo-500 mr-2">•</span>
-                    Submit help requests when you need assistance
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-indigo-500 mr-2">•</span>
-                    Browse available tasks to help others
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-indigo-500 mr-2">•</span>
-                    Earn badges for your contributions
-                  </li>
-                </ul>
+        {/* Data Status */}
+        {isSeeding && (
+          <Card className="border-blue-200 bg-blue-50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <p className="text-blue-700 text-sm">Loading sample data...</p>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2">For {profile?.role?.charAt(0).toUpperCase() + profile?.role?.slice(1)}s:</h3>
-                <ul className="space-y-2 text-gray-600 text-sm">
-                  {profile?.role === 'coordinator' && (
-                    <>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Review and verify submitted tasks
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Manage community volunteer efforts
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Access comprehensive admin dashboard
-                      </li>
-                    </>
-                  )}
-                  {profile?.role === 'scout' && (
-                    <>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Identify community needs through field work
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Perform wellness checks on residents
-                      </li> 
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Submit detailed field assessments
-                      </li>
-                    </>
-                  )}
-                  {profile?.role === 'medic' && (
-                    <>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Handle urgent medical priority tasks
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Provide medical assistance to community
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Report medical needs and priorities
-                      </li>
-                    </>
-                  )}
-                  {profile?.role === 'communicator' && (
-                    <>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Coordinate communication between volunteers
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Manage information flow and updates
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Bridge connections in the community
-                      </li>
-                    </>
-                  )}
-                  {profile?.role === 'volunteer' && (
-                    <>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Claim and complete community tasks
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Help neighbors with various needs
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-indigo-500 mr-2">•</span>
-                        Build stronger community connections
-                      </li>
-                    </>
-                  )}
-                </ul>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Debug Section - only show if needed */}
+        {user && profile?.role === 'coordinator' && (
+          <Card className="border-gray-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-700">Debug Tools</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="flex gap-2">
+                <ManualReseedButton />
+                <p className="text-xs text-gray-500 self-center">
+                  {isSeeded ? 'Data loaded' : 'No data'}
+                </p>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 gap-4">
+          <Link to="/browse-tasks">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <Search className="w-8 h-8 text-blue-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-gray-900 mb-1">Browse Tasks</h3>
+                <p className="text-sm text-gray-600">Find ways to help</p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to="/submit-task">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <Plus className="w-8 h-8 text-green-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-gray-900 mb-1">Request Help</h3>
+                <p className="text-sm text-gray-600">Submit a task</p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
+
+        {/* Secondary Actions */}
+        <div className="grid grid-cols-2 gap-4">
+          <Link to="/map">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <MapPin className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-gray-900 mb-1">Map View</h3>
+                <p className="text-sm text-gray-600">See nearby tasks</p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to="/profile">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <User className="w-8 h-8 text-orange-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-gray-900 mb-1">Profile</h3>
+                <p className="text-sm text-gray-600">View achievements</p>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
+        {/* Status Message */}
+        {!user && (
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardContent className="p-4 text-center">
+              <p className="text-yellow-800 text-sm">
+                Sign in to access all features and start helping your community!
+              </p>
+              <Link to="/auth">
+                <Button className="mt-3" size="sm">
+                  Sign In
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
       </div>
       <Navigation />
     </div>
