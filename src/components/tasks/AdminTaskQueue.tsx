@@ -73,7 +73,7 @@ const AdminTaskQueue: React.FC<AdminTaskQueueProps> = ({ adminId }) => {
           <Card>
             <CardContent className="text-center py-8">
               <h3 className="text-lg font-semibold mb-2">No Pending Tasks</h3>
-              <p className="text-gray-600">All tasks have been reviewed!</p>
+              <p className="text-gray-600">All completed tasks have been reviewed!</p>
             </CardContent>
           </Card>
         ) : (
@@ -85,11 +85,11 @@ const AdminTaskQueue: React.FC<AdminTaskQueueProps> = ({ adminId }) => {
                     <div>
                       <CardTitle className="text-xl">{task.title}</CardTitle>
                       <p className="text-sm text-gray-600 mt-1">
-                        Submitted {format(new Date(task.submitted_at), 'MMM d, yyyy h:mm a')}
+                        Completed {task.submitted_at ? format(new Date(task.submitted_at), 'MMM d, yyyy h:mm a') : 'Recently'}
                       </p>
                     </div>
                     <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                      Pending
+                      Awaiting Review
                     </Badge>
                   </div>
                 </CardHeader>
@@ -113,11 +113,11 @@ const AdminTaskQueue: React.FC<AdminTaskQueueProps> = ({ adminId }) => {
                     <div>
                       <div className="flex items-center mb-2">
                         <Camera className="w-4 h-4 mr-1" />
-                        <span className="text-sm font-medium">Photo Evidence</span>
+                        <span className="text-sm font-medium">Completion Proof</span>
                       </div>
                       <img 
                         src={getImageUrl(task.image_url)} 
-                        alt="Task evidence" 
+                        alt="Task completion proof" 
                         className="w-full max-w-md h-48 object-cover rounded-lg"
                       />
                     </div>
