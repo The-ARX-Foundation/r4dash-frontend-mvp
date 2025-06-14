@@ -38,7 +38,7 @@ export const useOpenTasks = () => {
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
-        .eq('status', 'open')
+        .eq('status', 'open' as any)
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -61,7 +61,7 @@ export const usePendingTasks = () => {
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
-        .in('status', ['completed', 'pending'])
+        .in('status', ['completed', 'pending'] as any)
         .order('submitted_at', { ascending: true });
       
       if (error) {
@@ -90,7 +90,7 @@ export const useTaskCreation = () => {
           location: taskData.location,
           image_url: taskData.image_url,
           user_id: taskData.user_id,
-          status: 'open'
+          status: 'open' as any
         })
         .select()
         .single();
@@ -125,12 +125,12 @@ export const useTaskClaim = () => {
       const { data, error } = await supabase
         .from('tasks')
         .update({
-          status: claim.status,
+          status: claim.status as any,
           claimed_by: claim.claimed_by,
           claimed_at: claim.claimed_at
         })
         .eq('id', taskId)
-        .eq('status', 'open')
+        .eq('status', 'open' as any)
         .select()
         .single();
       
@@ -159,7 +159,7 @@ export const useTaskCompletion = () => {
       const { data, error } = await supabase
         .from('tasks')
         .update({
-          status: completion.status,
+          status: completion.status as any,
           image_url: completion.image_url,
           submitted_at: completion.submitted_at,
           volunteer_id: (await supabase.auth.getUser()).data.user?.id
@@ -193,7 +193,7 @@ export const useTaskVerification = () => {
       const { data, error } = await supabase
         .from('tasks')
         .update({
-          status: verification.status,
+          status: verification.status as any,
           verified_by: verification.verified_by,
           verified_at: verification.verified_at,
           verified: verification.status === 'verified'
