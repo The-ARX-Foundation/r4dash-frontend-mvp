@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Task, TaskSubmission, TaskVerification, TaskClaim, TaskCompletion } from '@/types/task';
@@ -34,6 +35,16 @@ export const useOpenTasks = () => {
     queryFn: async () => {
       console.log('Fetching open tasks');
       
+      // First, let's check what's in the database
+      const { data: allTasks, error: allError } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      console.log('All tasks in database:', allTasks);
+      console.log('All tasks error:', allError);
+      
+      // Now fetch the open tasks specifically
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
@@ -42,6 +53,7 @@ export const useOpenTasks = () => {
       
       if (error) {
         console.error('Error fetching open tasks:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
         throw error;
       }
       

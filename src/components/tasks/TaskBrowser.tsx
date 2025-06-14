@@ -1,13 +1,14 @@
 
 import React, { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { MapPin, User, Clock, Eye } from 'lucide-react';
+import { MapPin, User, Clock, Eye, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useOpenTasks, useTaskClaim } from '@/hooks/useTasks';
 import { getImageUrl } from '@/utils/imageUpload';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/ui/navigation';
 import TaskFilters from './TaskFilters';
 import TaskDetailsModal from './TaskDetailsModal';
@@ -18,12 +19,19 @@ interface TaskBrowserProps {
 }
 
 const TaskBrowser: React.FC<TaskBrowserProps> = ({ userId }) => {
+  const navigate = useNavigate();
   const { data: openTasks, isLoading, error } = useOpenTasks();
   const taskClaim = useTaskClaim();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+
+  // Debug logging
+  console.log('TaskBrowser - userId:', userId);
+  console.log('TaskBrowser - openTasks:', openTasks);
+  console.log('TaskBrowser - isLoading:', isLoading);
+  console.log('TaskBrowser - error:', error);
 
   const filteredTasks = useMemo(() => {
     if (!openTasks) return [];
@@ -74,9 +82,15 @@ const TaskBrowser: React.FC<TaskBrowserProps> = ({ userId }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 pb-20">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">Available Tasks</h1>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 p-4 max-w-4xl mx-auto w-full">
+          <div className="flex items-center gap-4 mb-6">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <h1 className="text-3xl font-bold">Available Tasks</h1>
+          </div>
           <div className="text-center py-8">Loading available tasks...</div>
         </div>
         <Navigation />
@@ -85,12 +99,20 @@ const TaskBrowser: React.FC<TaskBrowserProps> = ({ userId }) => {
   }
 
   if (error) {
+    console.error('TaskBrowser error details:', error);
     return (
-      <div className="min-h-screen bg-gray-50 p-4 pb-20">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">Available Tasks</h1>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 p-4 max-w-4xl mx-auto w-full">
+          <div className="flex items-center gap-4 mb-6">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <h1 className="text-3xl font-bold">Available Tasks</h1>
+          </div>
           <div className="text-center py-8 text-red-600">
-            Error loading tasks. Please refresh the page.
+            <p>Error loading tasks: {error.message || 'Unknown error'}</p>
+            <p className="text-sm mt-2">Please check the console for more details.</p>
           </div>
         </div>
         <Navigation />
@@ -99,10 +121,16 @@ const TaskBrowser: React.FC<TaskBrowserProps> = ({ userId }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 pb-20">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Available Tasks</h1>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1 p-4 max-w-4xl mx-auto w-full">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <h1 className="text-3xl font-bold">Available Tasks</h1>
+          </div>
           <Badge variant="secondary" className="text-lg px-3 py-1">
             {filteredTasks.length} Available
           </Badge>
@@ -115,10 +143,27 @@ const TaskBrowser: React.FC<TaskBrowserProps> = ({ userId }) => {
           totalTasks={filteredTasks.length}
         />
 
-        {filteredTasks.length === 0 ? (
+        {openTasks && openTasks.length === 0 ? (
           <Card>
             <CardContent className="text-center py-8">
-              <h3 className="text-lg font-semibold mb-2">No Available Tasks</h3>
+              <h3 className="text-lg font-semibold mb-2">No Tasks in Database</h3>
+              <p className="text-gray-600 mb-4">
+                The database appears to be empty. This might be due to:
+              </p>
+              <ul className="text-sm text-gray-500 mb-4 space-y-1">
+                <li>• Auto-seeding not working</li>
+                <li>• RLS policies blocking data access</li>
+                <li>• Database connection issues</li>
+              </ul>
+              <Button onClick={() => navigate('/')}>
+                Go Back to Home
+              </Button>
+            </CardContent>
+          </Card>
+        ) : filteredTasks.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-8">
+              <h3 className="text-lg font-semibold mb-2">No Matching Tasks</h3>
               <p className="text-gray-600">
                 {searchTerm || locationFilter !== 'all' 
                   ? 'No tasks match your current filters. Try adjusting your search.'
@@ -128,14 +173,14 @@ const TaskBrowser: React.FC<TaskBrowserProps> = ({ userId }) => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 pb-4">
             {filteredTasks.map((task) => (
               <Card key={task.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-lg line-clamp-2">{task.title}</CardTitle>
                     <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 whitespace-nowrap ml-2">
-                      Available
+                      {task.status || 'Available'}
                     </Badge>
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
