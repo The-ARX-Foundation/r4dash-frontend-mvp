@@ -7,6 +7,25 @@ import { toast } from 'sonner';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Development bypass - set to true to skip authentication
+const DEV_BYPASS_AUTH = true;
+
+// Mock user and profile for development
+const mockUser = {
+  id: 'dev-user-123',
+  email: 'dev@example.com',
+  created_at: new Date().toISOString(),
+} as User;
+
+const mockProfile: UserProfile = {
+  id: 'dev-profile-123',
+  user_id: 'dev-user-123',
+  role: 'coordinator',
+  name: 'Development User',
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -42,6 +61,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // If development bypass is enabled, set mock data and skip Supabase auth
+    if (DEV_BYPASS_AUTH) {
+      setUser(mockUser);
+      setProfile(mockProfile);
+      setLoading(false);
+      return;
+    }
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -120,6 +147,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    if (DEV_BYPASS_AUTH) {
+      // In dev mode, just clear the mock data
+      setUser(null);
+      setProfile(null);
+      toast.success('Successfully signed out!');
+      return;
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast.error(error.message);
@@ -130,6 +165,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) return { error: new Error('No user logged in') };
+
+    if (DEV_BYPASS_AUTH) {
+      // In dev mode, just update the mock profile
+      setProfile(prev => prev ? { ...prev, ...updates } : null);
+      toast.success('Profile updated successfully!');
+      return { error: null };
+    }
 
     const { error } = await supabase
       .from('profiles')

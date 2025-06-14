@@ -74,6 +74,10 @@ const RoleSelection = () => {
     setLoading(false);
   };
 
+  const handleRoleChange = (value: string) => {
+    setSelectedRole(value as 'coordinator' | 'scout' | 'medic' | 'communicator' | 'volunteer');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-2xl">
@@ -84,7 +88,7 @@ const RoleSelection = () => {
           </p>
         </CardHeader>
         <CardContent>
-          <RadioGroup value={selectedRole} onValueChange={setSelectedRole} className="space-y-4">
+          <RadioGroup value={selectedRole} onValueChange={handleRoleChange} className="space-y-4">
             {roles.map((role) => {
               const Icon = role.icon;
               return (
