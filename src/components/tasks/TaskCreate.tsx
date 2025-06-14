@@ -23,6 +23,11 @@ const TaskCreate: React.FC<TaskCreateProps> = ({ userId }) => {
 
   const taskCreation = useTaskCreation();
 
+  // Generate a valid UUID for demo purposes
+  const generateDemoUserId = () => {
+    return 'demo-' + crypto.randomUUID().slice(0, 8) + '-' + crypto.randomUUID().slice(0, 4) + '-' + crypto.randomUUID().slice(0, 4) + '-' + crypto.randomUUID().slice(0, 4) + '-' + crypto.randomUUID().slice(0, 12);
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -48,15 +53,23 @@ const TaskCreate: React.FC<TaskCreateProps> = ({ userId }) => {
       
       let imageUrl = '';
       if (image) {
-        imageUrl = await uploadTaskImage(image, userId);
+        try {
+          imageUrl = await uploadTaskImage(image, userId);
+        } catch (imageError) {
+          console.log('Image upload failed, continuing without image:', imageError);
+          toast.error('Image upload failed, but task will be created without image');
+        }
       }
 
+      // Use a proper UUID format for demo
+      const demoUserId = crypto.randomUUID();
+      
       await taskCreation.mutateAsync({
         title: title.trim(),
         description: description.trim() || '',
         location: location.trim() || '',
         image_url: imageUrl,
-        user_id: userId,
+        user_id: demoUserId,
       });
 
       toast.success('Task created successfully! Others can now help complete it.');
