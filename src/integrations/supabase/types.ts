@@ -42,6 +42,41 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_badge_progress"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           claimed_at: string | null
@@ -53,6 +88,7 @@ export type Database = {
           latitude: number | null
           location: string | null
           longitude: number | null
+          medical_priority: string | null
           skill_tags: string[] | null
           status: Database["public"]["Enums"]["task_status"] | null
           submitted_at: string | null
@@ -63,6 +99,7 @@ export type Database = {
           verified_at: string | null
           verified_by: string | null
           volunteer_id: string | null
+          wellness_check: boolean | null
         }
         Insert: {
           claimed_at?: string | null
@@ -74,6 +111,7 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          medical_priority?: string | null
           skill_tags?: string[] | null
           status?: Database["public"]["Enums"]["task_status"] | null
           submitted_at?: string | null
@@ -84,6 +122,7 @@ export type Database = {
           verified_at?: string | null
           verified_by?: string | null
           volunteer_id?: string | null
+          wellness_check?: boolean | null
         }
         Update: {
           claimed_at?: string | null
@@ -95,6 +134,7 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          medical_priority?: string | null
           skill_tags?: string[] | null
           status?: Database["public"]["Enums"]["task_status"] | null
           submitted_at?: string | null
@@ -105,6 +145,7 @@ export type Database = {
           verified_at?: string | null
           verified_by?: string | null
           volunteer_id?: string | null
+          wellness_check?: boolean | null
         }
         Relationships: [
           {
@@ -194,6 +235,17 @@ export type Database = {
       }
     }
     Functions: {
+      get_user_role: {
+        Args: { user_uuid: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      has_role: {
+        Args: {
+          user_uuid: string
+          required_role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: boolean
+      }
       is_admin: {
         Args: { user_uuid: string }
         Returns: boolean
@@ -207,6 +259,12 @@ export type Database = {
         | "pending"
         | "verified"
         | "flagged"
+      user_role:
+        | "coordinator"
+        | "scout"
+        | "medic"
+        | "communicator"
+        | "volunteer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -330,6 +388,7 @@ export const Constants = {
         "verified",
         "flagged",
       ],
+      user_role: ["coordinator", "scout", "medic", "communicator", "volunteer"],
     },
   },
 } as const
