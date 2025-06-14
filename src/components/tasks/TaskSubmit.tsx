@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Camera, MapPin, Send } from 'lucide-react';
+import { Camera, MapPin, Send, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,6 +11,7 @@ import { uploadTaskImage } from '@/utils/imageUpload';
 import { TaskSubmission } from '@/types/task';
 import { toast } from 'sonner';
 import Navigation from '@/components/ui/navigation';
+import { useNavigate } from 'react-router-dom';
 
 interface TaskSubmitProps {
   userId: string;
@@ -22,6 +22,7 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
   const [imagePreview, setImagePreview] = useState<string>('');
   const [location, setLocation] = useState<string>('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const navigate = useNavigate();
   
   const taskSubmission = useTaskSubmission();
   
@@ -32,6 +33,10 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
       location: '',
     },
   });
+
+  const handleBack = () => {
+    navigate('/');
+  };
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -127,6 +132,11 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
       setImageFile(null);
       setImagePreview('');
       setLocation('');
+      
+      // Navigate back to home after successful submission
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     } catch (error) {
       console.error('Error submitting task:', error);
       toast.error('Failed to submit task. Please try again.');
@@ -138,7 +148,18 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
       <div className="max-w-md mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl font-bold text-center">Submit New Task</CardTitle>
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleBack}
+                className="p-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <CardTitle className="text-xl font-bold">Submit New Task</CardTitle>
+              <div className="w-8" /> {/* Spacer for centering */}
+            </div>
             <p className="text-sm text-gray-600 text-center">
               Request help from your community
             </p>
@@ -254,15 +275,24 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
                   )}
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={taskSubmission.isPending}
-                  size="lg"
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  {taskSubmission.isPending ? 'Submitting...' : 'Submit Task'}
-                </Button>
+                <div className="flex space-x-2">
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    onClick={handleBack}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="flex-1" 
+                    disabled={taskSubmission.isPending}
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    {taskSubmission.isPending ? 'Submitting...' : 'Submit'}
+                  </Button>
+                </div>
               </form>
             </Form>
           </CardContent>

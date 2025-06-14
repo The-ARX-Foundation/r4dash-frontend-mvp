@@ -9,10 +9,21 @@ export const useAutoSeed = () => {
 
   const checkIfDataExists = async () => {
     try {
+      console.log('Checking if data exists...');
       const [tasksResult, badgesResult] = await Promise.all([
         supabase.from('tasks').select('id', { count: 'exact', head: true }),
         supabase.from('badges').select('id', { count: 'exact', head: true })
       ]);
+
+      console.log('Tasks count:', tasksResult.count);
+      console.log('Badges count:', badgesResult.count);
+
+      if (tasksResult.error) {
+        console.error('Error checking tasks:', tasksResult.error);
+      }
+      if (badgesResult.error) {
+        console.error('Error checking badges:', badgesResult.error);
+      }
 
       const hasData = (tasksResult.count && tasksResult.count > 0) || 
                      (badgesResult.count && badgesResult.count > 0);
@@ -26,11 +37,13 @@ export const useAutoSeed = () => {
 
   const seedSampleData = async () => {
     setIsSeeding(true);
+    console.log('Starting to seed sample data...');
+    
     try {
       // Generate consistent UUIDs for sample users
       const generateUserId = (index: number) => `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
 
-      // Seed tasks with more 'open' status tasks
+      // Seed tasks with more 'open' status tasks (8 open tasks for easy browsing)
       const sampleTasks = [
         {
           title: 'Help elderly neighbor with groceries',
@@ -181,38 +194,61 @@ export const useAutoSeed = () => {
         }
       ];
 
+      console.log('Attempting to insert tasks and badges...');
+      
       const [tasksResult, badgesResult] = await Promise.all([
         supabase.from('tasks').insert(sampleTasks),
         supabase.from('badges').insert(sampleBadges)
       ]);
 
+      console.log('Tasks insert result:', tasksResult);
+      console.log('Badges insert result:', badgesResult);
+
       if (tasksResult.error) {
         console.error('Error seeding tasks:', tasksResult.error);
+        toast.error(`Failed to create sample tasks: ${tasksResult.error.message}`);
       }
       if (badgesResult.error) {
         console.error('Error seeding badges:', badgesResult.error);
+        toast.error(`Failed to create sample badges: ${badgesResult.error.message}`);
       }
 
       if (!tasksResult.error && !badgesResult.error) {
         setIsSeeded(true);
         toast.success('Sample data loaded successfully! 8 tasks are now available to browse and claim.');
+        console.log('Sample data seeded successfully');
+      } else if (!tasksResult.error) {
+        setIsSeeded(true);
+        toast.success('Sample tasks created successfully! 8 tasks are now available to browse.');
+        console.log('Sample tasks seeded successfully');
       } else {
-        toast.error('Some sample data failed to load, but you can still use the platform.');
+        toast.error('Failed to load sample data. You can still use the platform.');
+        console.error('Failed to seed sample data');
       }
     } catch (error) {
       console.error('Error seeding sample data:', error);
-      toast.error('Failed to load sample data, but you can still use the platform.');
+      toast.error(`Failed to load sample data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSeeding(false);
     }
   };
 
+  const manualReseed = async () => {
+    console.log('Manual reseed requested');
+    await seedSampleData();
+  };
+
   useEffect(() => {
     const initializeData = async () => {
+      console.log('Initializing data...');
       const hasData = await checkIfDataExists();
+      console.log('Has existing data:', hasData);
+      
       if (!hasData) {
+        console.log('No existing data found, seeding...');
         await seedSampleData();
       } else {
+        console.log('Data already exists, skipping seed');
         setIsSeeded(true);
       }
     };
@@ -220,5 +256,5 @@ export const useAutoSeed = () => {
     initializeData();
   }, []);
 
-  return { isSeeding, isSeeded };
+  return { isSeeding, isSeeded, manualReseed };
 };
