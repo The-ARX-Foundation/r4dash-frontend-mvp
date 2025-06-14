@@ -9,7 +9,7 @@ interface MapTasksFilters {
   radius?: number; // km
   urgency?: string[];
   skillTags?: string[];
-  status?: string[];
+  status?: ('open' | 'claimed' | 'completed' | 'pending' | 'verified' | 'flagged')[];
 }
 
 export const useMapTasks = (filters: MapTasksFilters = {}) => {
@@ -23,7 +23,7 @@ export const useMapTasks = (filters: MapTasksFilters = {}) => {
         .select('*')
         .not('latitude', 'is', null)
         .not('longitude', 'is', null)
-        .in('status', filters.status || ['open', 'verified']);
+        .in('status', filters.status || ['open', 'verified'] as const);
 
       // Apply urgency filter
       if (filters.urgency && filters.urgency.length > 0) {

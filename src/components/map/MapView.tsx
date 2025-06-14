@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Map, Layers, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
 import Navigation from '@/components/ui/navigation';
 import TaskMap from './TaskMap';
 import MapFilters from './MapFilters';
