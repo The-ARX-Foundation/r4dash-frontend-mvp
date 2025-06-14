@@ -183,7 +183,7 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
       return '#ef4444'; // Red
     }
     // Green = verified AND open tasks  
-    if (task.status === 'verified' && task.status !== 'claimed') {
+    if (task.status === 'verified') {
       return '#22c55e'; // Green
     }
     return '#3b82f6'; // Blue default
