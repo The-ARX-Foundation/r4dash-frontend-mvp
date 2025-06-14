@@ -82,7 +82,7 @@ const TaskSubmit: React.FC<TaskSubmitProps> = ({ userId }) => {
         ...data,
         location: location || data.location,
         image_url: imageUrl,
-        volunteer_id: userId,
+        user_id: userId,
       });
       
       toast.success('Task submitted successfully!');
