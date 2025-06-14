@@ -50,10 +50,14 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          latitude: number | null
           location: string | null
+          longitude: number | null
+          skill_tags: string[] | null
           status: Database["public"]["Enums"]["task_status"] | null
           submitted_at: string | null
           title: string
+          urgency: string | null
           user_id: string
           verified: boolean | null
           verified_at: string | null
@@ -67,10 +71,14 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
+          skill_tags?: string[] | null
           status?: Database["public"]["Enums"]["task_status"] | null
           submitted_at?: string | null
           title: string
+          urgency?: string | null
           user_id: string
           verified?: boolean | null
           verified_at?: string | null
@@ -84,10 +92,14 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
+          skill_tags?: string[] | null
           status?: Database["public"]["Enums"]["task_status"] | null
           submitted_at?: string | null
           title?: string
+          urgency?: string | null
           user_id?: string
           verified?: boolean | null
           verified_at?: string | null

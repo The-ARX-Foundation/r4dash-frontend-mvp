@@ -4,6 +4,10 @@ export interface Task {
   title: string;
   description: string | null;
   location: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  urgency: string | null;
+  skill_tags: string[] | null;
   status: 'open' | 'claimed' | 'completed' | 'pending' | 'verified' | 'flagged';
   volunteer_id: string | null;
   user_id: string; // creator of the task

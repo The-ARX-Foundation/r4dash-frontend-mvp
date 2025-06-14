@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Plus, Search, CheckSquare, Shield } from 'lucide-react';
+import { Plus, Search, CheckSquare, Shield, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -9,10 +9,11 @@ const Navigation = () => {
   const location = useLocation();
   
   const navItems = [
-    { path: '/create-task', icon: Plus, label: 'Submit Task', color: 'bg-blue-500' },
-    { path: '/browse-tasks', icon: Search, label: 'Browse Tasks', color: 'bg-green-500' },
+    { path: '/map', icon: Map, label: 'Map', color: 'bg-purple-500' },
+    { path: '/create-task', icon: Plus, label: 'Submit', color: 'bg-blue-500' },
+    { path: '/browse-tasks', icon: Search, label: 'Browse', color: 'bg-green-500' },
     { path: '/complete-tasks', icon: CheckSquare, label: 'My Tasks', color: 'bg-orange-500' },
-    { path: '/admin/tasks', icon: Shield, label: 'Admin', color: 'bg-purple-500' },
+    { path: '/admin/tasks', icon: Shield, label: 'Admin', color: 'bg-red-500' },
   ];
 
   return (

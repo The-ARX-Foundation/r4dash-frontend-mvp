@@ -9,6 +9,7 @@ import TaskCreatePage from "./pages/TaskCreate";
 import TaskBrowserPage from "./pages/TaskBrowser";
 import TaskCompletionPage from "./pages/TaskCompletion";
 import AdminTaskQueuePage from "./pages/AdminTaskQueue";
+import MapViewPage from "./pages/MapView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/create-task" element={<TaskCreatePage />} />
           <Route path="/complete-tasks" element={<TaskCompletionPage />} />
           <Route path="/admin/tasks" element={<AdminTaskQueuePage />} />
+          <Route path="/map" element={<MapViewPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Calendar, Award, Plus, Search, CheckSquare, Shield } from "lucide-react";
+import { Users, Calendar, Award, Plus, Search, CheckSquare, Shield, Map } from "lucide-react";
 import { Link } from "react-router-dom";
 import SampleDataCreator from "@/components/SampleDataCreator";
 
@@ -25,7 +25,24 @@ const Index = () => {
         </div>
 
         {/* Main Actions */}
-        <div className="grid md:grid-cols-2 gap-6 mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Map className="w-5 h-5 text-purple-600" />
+                Task Map
+              </CardTitle>
+              <CardDescription>
+                Discover tasks near you on an interactive map
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link to="/map">
+                <Button className="w-full bg-purple-600 hover:bg-purple-700">View Map</Button>
+              </Link>
+            </CardContent>
+          </Card>
+
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
