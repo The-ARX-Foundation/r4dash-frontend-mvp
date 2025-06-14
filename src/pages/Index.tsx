@@ -1,6 +1,6 @@
 
 import Navigation from "@/components/ui/navigation";
-import Sample-DataCreator from "@/components/SampleDataCreator";
+import SampleDataCreator from "@/components/SampleDataCreator";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 
