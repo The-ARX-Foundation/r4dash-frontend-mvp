@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,16 +9,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Development bypass - set to true to skip authentication
 const DEV_BYPASS_AUTH = true;
 
+// Use a consistent UUID for development that matches our seeded data
+const CONSISTENT_DEV_USER_ID = '00000000-0000-4000-8000-000000000001';
+
 // Mock user and profile for development
 const mockUser = {
-  id: 'dev-user-123',
+  id: CONSISTENT_DEV_USER_ID,
   email: 'dev@example.com',
   created_at: new Date().toISOString(),
 } as User;
 
 const mockProfile: UserProfile = {
   id: 'dev-profile-123',
-  user_id: 'dev-user-123',
+  user_id: CONSISTENT_DEV_USER_ID,
   role: 'coordinator',
   name: 'Development User',
   created_at: new Date().toISOString(),
@@ -60,11 +62,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const ensureDevProfile = async () => {
+    try {
+      // Check if dev profile exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', CONSISTENT_DEV_USER_ID)
+        .single();
+
+      if (!existingProfile) {
+        console.log('Creating dev profile...');
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: CONSISTENT_DEV_USER_ID,
+            name: 'Development User',
+            role: 'coordinator'
+          });
+
+        if (error) {
+          console.error('Error creating dev profile:', error);
+        } else {
+          console.log('Dev profile created successfully');
+        }
+      }
+    } catch (error) {
+      console.error('Error ensuring dev profile:', error);
+    }
+  };
+
   useEffect(() => {
     // If development bypass is enabled, set mock data and skip Supabase auth
     if (DEV_BYPASS_AUTH) {
+      console.log('DEV_BYPASS_AUTH enabled, using mock user:', CONSISTENT_DEV_USER_ID);
       setUser(mockUser);
       setProfile(mockProfile);
+      
+      // Ensure the dev profile exists in the database
+      ensureDevProfile();
+      
       setLoading(false);
       return;
     }

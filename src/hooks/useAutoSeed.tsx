@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Use the same consistent user ID as in AuthContext
+const CONSISTENT_DEV_USER_ID = '00000000-0000-4000-8000-000000000001';
+
 export const useAutoSeed = () => {
   const [isSeeding, setIsSeeding] = useState(false);
   const [isSeeded, setIsSeeded] = useState(false);
@@ -31,7 +34,7 @@ export const useAutoSeed = () => {
       return hasData;
     } catch (error) {
       console.error('Error checking existing data:', error);
-      return true; // Assume data exists to avoid seeding on error
+      return false; // Changed from true to false to allow seeding on error
     }
   };
 
@@ -40,10 +43,35 @@ export const useAutoSeed = () => {
     console.log('Starting to seed sample data...');
     
     try {
-      // Generate consistent UUIDs for sample users
+      // First ensure the consistent dev user profile exists
+      const { data: existingProfile, error: profileCheckError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', CONSISTENT_DEV_USER_ID)
+        .single();
+
+      if (profileCheckError && profileCheckError.code === 'PGRST116') {
+        // Profile doesn't exist, create it
+        console.log('Creating dev user profile...');
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: CONSISTENT_DEV_USER_ID,
+            name: 'Development User',
+            role: 'coordinator'
+          });
+
+        if (profileError) {
+          console.error('Error creating profile:', profileError);
+          toast.error(`Failed to create user profile: ${profileError.message}`);
+          return;
+        }
+      }
+
+      // Generate additional user IDs for variety
       const generateUserId = (index: number) => `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
 
-      // Seed tasks with more 'open' status tasks (8 open tasks for easy browsing)
+      // Seed tasks with the consistent user ID for the first few tasks
       const sampleTasks = [
         {
           title: 'Help elderly neighbor with groceries',
@@ -53,7 +81,7 @@ export const useAutoSeed = () => {
           longitude: -73.9554,
           urgency: 'high',
           skill_tags: ['physical', 'elderly-care'],
-          user_id: generateUserId(1),
+          user_id: CONSISTENT_DEV_USER_ID, // Use consistent ID
           status: 'open' as const
         },
         {
@@ -64,7 +92,7 @@ export const useAutoSeed = () => {
           longitude: -73.9654,
           urgency: 'medium',
           skill_tags: ['pets', 'outdoor'],
-          user_id: generateUserId(2),
+          user_id: CONSISTENT_DEV_USER_ID, // Use consistent ID
           status: 'open' as const
         },
         {
@@ -206,23 +234,25 @@ export const useAutoSeed = () => {
 
       if (tasksResult.error) {
         console.error('Error seeding tasks:', tasksResult.error);
+        console.error('Task error details:', JSON.stringify(tasksResult.error, null, 2));
         toast.error(`Failed to create sample tasks: ${tasksResult.error.message}`);
       }
       if (badgesResult.error) {
         console.error('Error seeding badges:', badgesResult.error);
+        console.error('Badge error details:', JSON.stringify(badgesResult.error, null, 2));
         toast.error(`Failed to create sample badges: ${badgesResult.error.message}`);
       }
 
       if (!tasksResult.error && !badgesResult.error) {
         setIsSeeded(true);
-        toast.success('Sample data loaded successfully! 8 tasks are now available to browse and claim.');
+        toast.success('Sample data loaded successfully! 10 tasks are now available to browse and claim.');
         console.log('Sample data seeded successfully');
       } else if (!tasksResult.error) {
         setIsSeeded(true);
-        toast.success('Sample tasks created successfully! 8 tasks are now available to browse.');
+        toast.success('Sample tasks created successfully! Tasks are now available to browse.');
         console.log('Sample tasks seeded successfully');
       } else {
-        toast.error('Failed to load sample data. You can still use the platform.');
+        toast.error('Failed to load sample data. Check console for details.');
         console.error('Failed to seed sample data');
       }
     } catch (error) {
