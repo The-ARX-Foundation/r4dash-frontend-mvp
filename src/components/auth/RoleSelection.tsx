@@ -55,7 +55,8 @@ const RoleSelection = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // If user already has a role selected and it's not the default, redirect to home
+  // If user already has a role selected and it's not the default volunteer, redirect to home
+  // This includes coordinators who shouldn't see the role selection
   if (profile?.role && profile.role !== 'volunteer') {
     return <Navigate to="/" replace />;
   }
