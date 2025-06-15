@@ -3,17 +3,19 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAutoSeed } from '@/hooks/useAutoSeed';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Search, User, MapPin, LogOut } from 'lucide-react';
+import { Plus, Search, User, MapPin, LogOut, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navigation from '@/components/ui/navigation';
 import ManualReseedButton from '@/components/ManualReseedButton';
 import RoleBasedActions from '@/components/RoleBasedActions';
 import { useRole } from '@/hooks/useRole';
+import { useState, useEffect } from 'react';
 
 const Index = () => {
   const { user, profile, loading, signOut } = useAuth();
   const { isSeeding, isSeeded } = useAutoSeed();
   const { role, isCoordinator } = useRole();
+  const [profileTimeout, setProfileTimeout] = useState(false);
 
   console.log('Index Page Debug:', {
     user: user?.id,
@@ -24,6 +26,21 @@ const Index = () => {
     isSeeding,
     isSeeded
   });
+
+  // Set a timeout for profile loading
+  useEffect(() => {
+    if (user && !profile && !loading) {
+      const timer = setTimeout(() => {
+        setProfileTimeout(true);
+      }, 5000); // 5 second timeout
+
+      return () => clearTimeout(timer);
+    }
+  }, [user, profile, loading]);
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
 
   if (loading) {
     return (
@@ -36,13 +53,43 @@ const Index = () => {
     );
   }
 
-  // If user doesn't have a profile yet, they'll be redirected by ProtectedRoute
+  // Show timeout message if profile creation is taking too long
+  if (user && !profile && (profileTimeout || !loading)) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="mb-4">
+            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <RefreshCw className="w-8 h-8 text-yellow-600" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">Profile Setup Issue</h2>
+            <p className="text-gray-600 mb-4">
+              We're having trouble setting up your profile. This might be a temporary issue.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Button onClick={handleRefresh} className="w-full">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Try Again
+            </Button>
+            <Button variant="outline" onClick={signOut} className="w-full">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out & Try Different Account
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If user doesn't have a profile yet, show loading message
   if (!profile) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Setting up your profile...</p>
+          <p className="text-xs text-gray-400 mt-2">This should only take a moment</p>
         </div>
       </div>
     );

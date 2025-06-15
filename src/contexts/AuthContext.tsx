@@ -42,39 +42,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // TEMPORARY: Auto-create profile if missing
   const ensureProfile = async (userId: string, userEmail: string) => {
     console.log('Ensuring profile exists for user:', userId);
     
-    // First try to fetch existing profile
-    let existingProfile = await fetchProfile(userId);
-    if (existingProfile) {
-      return existingProfile;
-    }
+    try {
+      // First try to fetch existing profile
+      let existingProfile = await fetchProfile(userId);
+      if (existingProfile) {
+        console.log('Found existing profile:', existingProfile);
+        return existingProfile;
+      }
 
-    // If no profile exists, create one with default volunteer role
-    console.log('No profile found, creating default volunteer profile');
-    const { data, error } = await supabase
-      .from('profiles')
-      .insert({
-        user_id: userId,
-        name: userEmail.split('@')[0],
-        role: 'volunteer'
-      })
-      .select()
-      .single();
+      // If no profile exists, create one with default volunteer role
+      console.log('No profile found, creating default volunteer profile');
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: userId,
+          name: userEmail.split('@')[0],
+          role: 'volunteer'
+        })
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error creating profile:', error);
+      if (error) {
+        console.error('Error creating profile:', error);
+        // If profile creation fails, try to fetch again (might have been created by trigger)
+        const fallbackProfile = await fetchProfile(userId);
+        if (fallbackProfile) {
+          console.log('Found profile via fallback:', fallbackProfile);
+          return fallbackProfile;
+        }
+        throw error;
+      }
+
+      console.log('Created new profile:', data);
+      return data as UserProfile;
+    } catch (error) {
+      console.error('Failed to ensure profile:', error);
+      toast.error('Failed to set up user profile. Please try refreshing the page.');
       return null;
     }
-
-    console.log('Created new profile:', data);
-    return data as UserProfile;
   };
 
   useEffect(() => {
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -87,16 +100,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // TEMPORARY: Ensure profile exists, create if missing
-          setTimeout(async () => {
+          // Add a small delay to prevent race conditions
+          timeoutId = setTimeout(async () => {
             if (!mounted) return;
             
-            const userProfile = await ensureProfile(session.user.id, session.user.email || '');
-            if (mounted) {
-              setProfile(userProfile);
-              setLoading(false);
+            try {
+              const userProfile = await ensureProfile(session.user.id, session.user.email || '');
+              if (mounted) {
+                setProfile(userProfile);
+              }
+            } catch (error) {
+              console.error('Profile setup failed:', error);
+              if (mounted) {
+                setProfile(null);
+              }
+            } finally {
+              if (mounted) {
+                setLoading(false);
+              }
             }
-          }, 100);
+          }, 200);
         } else {
           setProfile(null);
           setLoading(false);
@@ -116,10 +139,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // TEMPORARY: Ensure profile exists, create if missing
-          const userProfile = await ensureProfile(session.user.id, session.user.email || '');
-          if (mounted) {
-            setProfile(userProfile);
+          try {
+            const userProfile = await ensureProfile(session.user.id, session.user.email || '');
+            if (mounted) {
+              setProfile(userProfile);
+            }
+          } catch (error) {
+            console.error('Initial profile setup failed:', error);
+            if (mounted) {
+              setProfile(null);
+            }
           }
         }
       } catch (error) {
@@ -135,6 +164,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       subscription.unsubscribe();
     };
   }, []);
