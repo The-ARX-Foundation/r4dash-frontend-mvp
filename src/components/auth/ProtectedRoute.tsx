@@ -36,18 +36,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth" replace />;
   }
 
-  // If user exists but no profile, redirect to role selection
-  // But skip this for role-selection page itself to avoid infinite loop
-  if (!profile && location.pathname !== '/role-selection') {
-    console.log('No profile found, redirecting to role selection');
-    return <Navigate to="/role-selection" replace />;
-  }
-
-  // If we're on role-selection page and user has a profile, redirect to home
-  if (location.pathname === '/role-selection' && profile) {
-    console.log('Profile exists, redirecting from role selection to home');
-    return <Navigate to="/" replace />;
-  }
+  // TEMPORARY BYPASS: Skip all role selection logic
+  // TODO: Re-implement role selection with proper state management
+  // Steps for re-implementation:
+  // 1. Fix profile fetching race condition in AuthContext
+  // 2. Implement proper role selection flow with better state management  
+  // 3. Add role request system for coordinator access
+  // 4. Re-enable role selection route with proper guards
+  // 5. Add admin interface for role management
+  
+  // For now, if user exists but no profile, AuthContext will auto-create one
+  // This prevents any redirect loops to role-selection
 
   // Check permissions if required
   if (requiredPermission && profile) {

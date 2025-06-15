@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,6 +42,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // TEMPORARY: Auto-create profile if missing
+  const ensureProfile = async (userId: string, userEmail: string) => {
+    console.log('Ensuring profile exists for user:', userId);
+    
+    // First try to fetch existing profile
+    let existingProfile = await fetchProfile(userId);
+    if (existingProfile) {
+      return existingProfile;
+    }
+
+    // If no profile exists, create one with default volunteer role
+    console.log('No profile found, creating default volunteer profile');
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert({
+        user_id: userId,
+        name: userEmail.split('@')[0],
+        role: 'volunteer'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating profile:', error);
+      return null;
+    }
+
+    console.log('Created new profile:', data);
+    return data as UserProfile;
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -57,11 +87,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Fetch profile with a slight delay to ensure database consistency
+          // TEMPORARY: Ensure profile exists, create if missing
           setTimeout(async () => {
             if (!mounted) return;
             
-            const userProfile = await fetchProfile(session.user.id);
+            const userProfile = await ensureProfile(session.user.id, session.user.email || '');
             if (mounted) {
               setProfile(userProfile);
               setLoading(false);
@@ -86,7 +116,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          const userProfile = await fetchProfile(session.user.id);
+          // TEMPORARY: Ensure profile exists, create if missing
+          const userProfile = await ensureProfile(session.user.id, session.user.email || '');
           if (mounted) {
             setProfile(userProfile);
           }
