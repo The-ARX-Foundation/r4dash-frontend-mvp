@@ -34,7 +34,7 @@ export const useAutoSeed = () => {
       return hasData;
     } catch (error) {
       console.error('Error checking existing data:', error);
-      return false; // Changed from true to false to allow seeding on error
+      return false;
     }
   };
 
@@ -43,35 +43,10 @@ export const useAutoSeed = () => {
     console.log('Starting to seed sample data...');
     
     try {
-      // First ensure the consistent dev user profile exists
-      const { data: existingProfile, error: profileCheckError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', CONSISTENT_DEV_USER_ID)
-        .single();
-
-      if (profileCheckError && profileCheckError.code === 'PGRST116') {
-        // Profile doesn't exist, create it
-        console.log('Creating dev user profile...');
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: CONSISTENT_DEV_USER_ID,
-            name: 'Development User',
-            role: 'coordinator'
-          });
-
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-          toast.error(`Failed to create user profile: ${profileError.message}`);
-          return;
-        }
-      }
-
       // Generate additional user IDs for variety
       const generateUserId = (index: number) => `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
 
-      // Seed tasks with the consistent user ID for the first few tasks
+      // Seed tasks - removed the profile creation dependency
       const sampleTasks = [
         {
           title: 'Help elderly neighbor with groceries',
@@ -81,7 +56,7 @@ export const useAutoSeed = () => {
           longitude: -73.9554,
           urgency: 'high',
           skill_tags: ['physical', 'elderly-care'],
-          user_id: CONSISTENT_DEV_USER_ID, // Use consistent ID
+          user_id: CONSISTENT_DEV_USER_ID,
           status: 'open' as const
         },
         {
@@ -92,7 +67,7 @@ export const useAutoSeed = () => {
           longitude: -73.9654,
           urgency: 'medium',
           skill_tags: ['pets', 'outdoor'],
-          user_id: CONSISTENT_DEV_USER_ID, // Use consistent ID
+          user_id: CONSISTENT_DEV_USER_ID,
           status: 'open' as const
         },
         {
