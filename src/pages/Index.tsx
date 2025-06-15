@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAutoSeed } from '@/hooks/useAutoSeed';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Search, User, MapPin } from 'lucide-react';
+import { Plus, Search, User, MapPin, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navigation from '@/components/ui/navigation';
 import ManualReseedButton from '@/components/ManualReseedButton';
@@ -11,9 +11,19 @@ import RoleBasedActions from '@/components/RoleBasedActions';
 import { useRole } from '@/hooks/useRole';
 
 const Index = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
   const { isSeeding, isSeeded } = useAutoSeed();
   const { role, isCoordinator } = useRole();
+
+  console.log('Index Page Debug:', {
+    user: user?.id,
+    profile: profile,
+    role,
+    isCoordinator,
+    loading,
+    isSeeding,
+    isSeeded
+  });
 
   if (loading) {
     return (
@@ -28,14 +38,28 @@ const Index = () => {
 
   // If user doesn't have a profile yet, they'll be redirected by ProtectedRoute
   if (!profile) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Setting up your profile...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 pb-20">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
+        {/* Header with Logout */}
         <div className="text-center py-6">
+          <div className="flex justify-between items-start mb-4">
+            <div></div>
+            <Button variant="outline" size="sm" onClick={signOut}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Community Helper
           </h1>
@@ -52,6 +76,23 @@ const Index = () => {
           )}
         </div>
 
+        {/* Debug Info Card - Show current state */}
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-yellow-800">Debug Info</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="text-xs text-yellow-700 space-y-1">
+              <div>User ID: {user?.id}</div>
+              <div>Profile: {profile ? 'Yes' : 'No'} (Role: {profile?.role})</div>
+              <div>Detected Role: {role}</div>
+              <div>Is Coordinator: {isCoordinator ? 'Yes' : 'No'}</div>
+              <div>Data Seeded: {isSeeded ? 'Yes' : 'No'}</div>
+              <div>Currently Seeding: {isSeeding ? 'Yes' : 'No'}</div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Data Status */}
         {isSeeding && (
           <Card className="border-blue-200 bg-blue-50">
@@ -64,28 +105,30 @@ const Index = () => {
           </Card>
         )}
 
-        {/* Debug Section - only show for coordinators */}
-        {isCoordinator && (
-          <Card className="border-gray-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-700">Admin Tools</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="flex gap-2">
-                <ManualReseedButton />
-                <p className="text-xs text-gray-500 self-center">
-                  {isSeeded ? 'Data loaded' : 'No data'}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Debug Section - show for all users for now */}
+        <Card className="border-gray-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-gray-700">Manual Tools</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex gap-2">
+              <ManualReseedButton />
+              <p className="text-xs text-gray-500 self-center">
+                {isSeeded ? 'Data loaded' : 'No data detected'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Role-based Actions */}
-        <RoleBasedActions />
+        {/* Role-based Actions - This should render based on role */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Available Actions</h2>
+          <RoleBasedActions />
+        </div>
 
-        {/* Quick Actions for non-coordinators */}
-        {!isCoordinator && (
+        {/* Fallback Actions - Always show these */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Quick Actions</h2>
           <div className="grid grid-cols-2 gap-4">
             <Link to="/browse-tasks">
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
@@ -106,12 +149,7 @@ const Index = () => {
                 </CardContent>
               </Card>
             </Link>
-          </div>
-        )}
 
-        {/* Secondary Actions for non-coordinators */}
-        {!isCoordinator && (
-          <div className="grid grid-cols-2 gap-4">
             <Link to="/map">
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6 text-center">
@@ -132,7 +170,7 @@ const Index = () => {
               </Card>
             </Link>
           </div>
-        )}
+        </div>
       </div>
       <Navigation />
     </div>

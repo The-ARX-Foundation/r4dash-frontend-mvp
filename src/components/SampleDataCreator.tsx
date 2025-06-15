@@ -4,12 +4,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const SampleDataCreator: React.FC = () => {
+  const { user } = useAuth();
+
   const createSampleTasks = async () => {
+    if (!user) {
+      toast.error('Must be logged in to create sample tasks');
+      return;
+    }
+
     try {
       const sampleTasks = [
-        // New York City area tasks
+        // Use current user's ID for all sample tasks
         {
           title: 'Help elderly neighbor with groceries',
           description: 'Need someone to help carry groceries from the car to the apartment on the 3rd floor. Mrs. Johnson is 85 and has trouble with heavy bags.',
@@ -18,8 +26,8 @@ const SampleDataCreator: React.FC = () => {
           longitude: -73.9554,
           urgency: 'high',
           skill_tags: ['physical', 'elderly-care'],
-          user_id: crypto.randomUUID(),
-          status: 'verified' as const
+          user_id: user.id,
+          status: 'open' as const
         },
         {
           title: 'Dog walking service needed',
@@ -29,8 +37,8 @@ const SampleDataCreator: React.FC = () => {
           longitude: -73.9654,
           urgency: 'medium',
           skill_tags: ['pets', 'outdoor'],
-          user_id: crypto.randomUUID(),
-          status: 'pending' as const
+          user_id: user.id,
+          status: 'open' as const
         },
         {
           title: 'Computer help for senior',
@@ -40,22 +48,20 @@ const SampleDataCreator: React.FC = () => {
           longitude: -73.9932,
           urgency: 'medium',
           skill_tags: ['technology', 'teaching', 'elderly-care'],
-          user_id: crypto.randomUUID(),
-          status: 'verified' as const
+          user_id: user.id,
+          status: 'open' as const
         },
         {
           title: 'Moving furniture urgently',
-          description: 'Need help moving a couch and dining table to a new apartment TODAY. Have a truck, just need someone strong to help lift and carry.',
+          description: 'Need help moving a couch and dining table to a new apartment. Have a truck, just need someone strong to help lift and carry.',
           location: 'Queens, NYC',
           latitude: 40.7282,
           longitude: -73.7949,
           urgency: 'critical',
           skill_tags: ['physical', 'moving'],
-          user_id: crypto.randomUUID(),
-          status: 'pending' as const
+          user_id: user.id,
+          status: 'open' as const
         },
-        
-        // Los Angeles area tasks
         {
           title: 'Yard cleanup assistance',
           description: 'Need help raking leaves and cleaning up the backyard before winter. Have all tools ready, just need an extra pair of hands.',
@@ -64,55 +70,7 @@ const SampleDataCreator: React.FC = () => {
           longitude: -118.4912,
           urgency: 'low',
           skill_tags: ['physical', 'outdoor', 'gardening'],
-          user_id: crypto.randomUUID(),
-          status: 'verified' as const
-        },
-        {
-          title: 'Tutoring for math homework',
-          description: 'My 10-year-old needs help with 4th grade math homework. Looking for someone patient and good with kids.',
-          location: 'Beverly Hills, CA',
-          latitude: 34.0736,
-          longitude: -118.4004,
-          urgency: 'medium',
-          skill_tags: ['teaching', 'academic', 'children'],
-          user_id: crypto.randomUUID(),
-          status: 'open' as const
-        },
-        
-        // Chicago area tasks
-        {
-          title: 'Snow removal help needed',
-          description: 'Elderly couple needs help clearing snow from driveway and walkway. Tools provided, just need strong arms!',
-          location: 'Lincoln Park, Chicago, IL',
-          latitude: 41.9342,
-          longitude: -87.6431,
-          urgency: 'high',
-          skill_tags: ['physical', 'outdoor', 'elderly-care'],
-          user_id: crypto.randomUUID(),
-          status: 'verified' as const
-        },
-        {
-          title: 'Food delivery volunteer',
-          description: 'Local food bank needs volunteers to deliver meals to homebound seniors. Must have reliable transportation.',
-          location: 'Downtown Chicago, IL',
-          latitude: 41.8781,
-          longitude: -87.6298,
-          urgency: 'medium',
-          skill_tags: ['driving', 'community-service', 'elderly-care'],
-          user_id: crypto.randomUUID(),
-          status: 'pending' as const
-        },
-        
-        // San Francisco area tasks
-        {
-          title: 'Tech setup for nonprofit',
-          description: 'Small nonprofit needs help setting up new computers and network equipment. Looking for someone with IT experience.',
-          location: 'Mission District, San Francisco, CA',
-          latitude: 37.7599,
-          longitude: -122.4148,
-          urgency: 'medium',
-          skill_tags: ['technology', 'nonprofit', 'networking'],
-          user_id: crypto.randomUUID(),
+          user_id: user.id,
           status: 'verified' as const
         },
         {
@@ -123,32 +81,20 @@ const SampleDataCreator: React.FC = () => {
           longitude: -122.4644,
           urgency: 'critical',
           skill_tags: ['childcare', 'emergency'],
-          user_id: crypto.randomUUID(),
-          status: 'pending' as const
+          user_id: user.id,
+          status: 'completed' as const
         },
-        
-        // Boston area tasks
         {
-          title: 'Elderly companion needed',
-          description: 'Looking for someone to spend time with my 78-year-old father. He enjoys conversation and light activities.',
+          title: 'Wellness check for elderly resident',
+          description: 'Regular wellness check needed for Mrs. Thompson who lives alone. Just need someone to visit and ensure she is okay.',
           location: 'Back Bay, Boston, MA',
           latitude: 42.3505,
           longitude: -71.0753,
           urgency: 'low',
-          skill_tags: ['companionship', 'elderly-care'],
-          user_id: crypto.randomUUID(),
-          status: 'verified' as const
-        },
-        {
-          title: 'Food prep volunteer for shelter',
-          description: 'Local homeless shelter needs help preparing and serving meals. Great way to give back to the community.',
-          location: 'South End, Boston, MA',
-          latitude: 42.3398,
-          longitude: -71.0691,
-          urgency: 'medium',
-          skill_tags: ['cooking', 'community-service', 'volunteer'],
-          user_id: crypto.randomUUID(),
-          status: 'open' as const
+          skill_tags: ['wellness-check', 'elderly-care'],
+          user_id: user.id,
+          status: 'pending' as const,
+          wellness_check: true
         }
       ];
 
@@ -159,12 +105,12 @@ const SampleDataCreator: React.FC = () => {
 
       if (error) {
         console.error('Error creating sample tasks:', error);
-        toast.error('Failed to create sample tasks');
+        toast.error('Failed to create sample tasks: ' + error.message);
         return;
       }
 
       console.log('Sample tasks created:', data);
-      toast.success(`Successfully created ${data.length} sample tasks with coordinates!`);
+      toast.success(`Successfully created ${data.length} sample tasks!`);
     } catch (error) {
       console.error('Error creating sample tasks:', error);
       toast.error('Failed to create sample tasks');
@@ -223,7 +169,7 @@ const SampleDataCreator: React.FC = () => {
 
       if (error) {
         console.error('Error creating sample badges:', error);
-        toast.error('Failed to create sample badges');
+        toast.error('Failed to create sample badges: ' + error.message);
         return;
       }
 
@@ -238,15 +184,18 @@ const SampleDataCreator: React.FC = () => {
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Sample Data</CardTitle>
+        <CardTitle>Sample Data Tools</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <Button onClick={createSampleTasks} className="w-full">
-          Add Sample Tasks with Coordinates
+          Create Sample Tasks (Uses Your User ID)
         </Button>
         <Button onClick={createSampleBadges} variant="outline" className="w-full">
-          Add Sample Badges
+          Create Sample Badges
         </Button>
+        <p className="text-xs text-gray-500">
+          These tools create sample data using your current user account to avoid foreign key errors.
+        </p>
       </CardContent>
     </Card>
   );
