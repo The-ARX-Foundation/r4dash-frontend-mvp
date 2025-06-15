@@ -7,10 +7,13 @@ import { Plus, Search, User, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navigation from '@/components/ui/navigation';
 import ManualReseedButton from '@/components/ManualReseedButton';
+import RoleBasedActions from '@/components/RoleBasedActions';
+import { useRole } from '@/hooks/useRole';
 
 const Index = () => {
   const { user, profile, loading } = useAuth();
   const { isSeeding, isSeeded } = useAutoSeed();
+  const { role, isCoordinator } = useRole();
 
   if (loading) {
     return (
@@ -23,9 +26,14 @@ const Index = () => {
     );
   }
 
+  // If user doesn't have a profile yet, they'll be redirected by ProtectedRoute
+  if (!profile) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 pb-20">
-      <div className="max-w-md mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center py-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -37,7 +45,9 @@ const Index = () => {
           {user && (
             <p className="text-sm text-blue-600 mt-2">
               Welcome back, {profile?.name || user.email}!
-              {profile?.role && ` (${profile.role})`}
+              <span className="ml-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                {role.charAt(0).toUpperCase() + role.slice(1)}
+              </span>
             </p>
           )}
         </div>
@@ -54,11 +64,11 @@ const Index = () => {
           </Card>
         )}
 
-        {/* Debug Section - only show if needed */}
-        {user && profile?.role === 'coordinator' && (
+        {/* Debug Section - only show for coordinators */}
+        {isCoordinator && (
           <Card className="border-gray-200">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-700">Debug Tools</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-700">Admin Tools</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="flex gap-2">
@@ -71,66 +81,57 @@ const Index = () => {
           </Card>
         )}
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-4">
-          <Link to="/browse-tasks">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <Search className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-1">Browse Tasks</h3>
-                <p className="text-sm text-gray-600">Find ways to help</p>
-              </CardContent>
-            </Card>
-          </Link>
+        {/* Role-based Actions */}
+        <RoleBasedActions />
 
-          <Link to="/submit-task">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <Plus className="w-8 h-8 text-green-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-1">Request Help</h3>
-                <p className="text-sm text-gray-600">Submit a task</p>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
+        {/* Quick Actions for non-coordinators */}
+        {!isCoordinator && (
+          <div className="grid grid-cols-2 gap-4">
+            <Link to="/browse-tasks">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <Search className="w-8 h-8 text-blue-600 mx-auto mb-3" />
+                  <h3 className="font-semibold text-gray-900 mb-1">Browse Tasks</h3>
+                  <p className="text-sm text-gray-600">Find ways to help</p>
+                </CardContent>
+              </Card>
+            </Link>
 
-        {/* Secondary Actions */}
-        <div className="grid grid-cols-2 gap-4">
-          <Link to="/map">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <MapPin className="w-8 h-8 text-purple-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-1">Map View</h3>
-                <p className="text-sm text-gray-600">See nearby tasks</p>
-              </CardContent>
-            </Card>
-          </Link>
+            <Link to="/create-task">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <Plus className="w-8 h-8 text-green-600 mx-auto mb-3" />
+                  <h3 className="font-semibold text-gray-900 mb-1">Request Help</h3>
+                  <p className="text-sm text-gray-600">Submit a task</p>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        )}
 
-          <Link to="/profile">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <User className="w-8 h-8 text-orange-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-1">Profile</h3>
-                <p className="text-sm text-gray-600">View achievements</p>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
+        {/* Secondary Actions for non-coordinators */}
+        {!isCoordinator && (
+          <div className="grid grid-cols-2 gap-4">
+            <Link to="/map">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <MapPin className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                  <h3 className="font-semibold text-gray-900 mb-1">Map View</h3>
+                  <p className="text-sm text-gray-600">See nearby tasks</p>
+                </CardContent>
+              </Card>
+            </Link>
 
-        {/* Status Message */}
-        {!user && (
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardContent className="p-4 text-center">
-              <p className="text-yellow-800 text-sm">
-                Sign in to access all features and start helping your community!
-              </p>
-              <Link to="/auth">
-                <Button className="mt-3" size="sm">
-                  Sign In
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+            <Link to="/profile">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <User className="w-8 h-8 text-orange-600 mx-auto mb-3" />
+                  <h3 className="font-semibold text-gray-900 mb-1">Profile</h3>
+                  <p className="text-sm text-gray-600">View achievements</p>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
         )}
       </div>
       <Navigation />

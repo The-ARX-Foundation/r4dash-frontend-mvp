@@ -36,28 +36,21 @@ const roles = [
     icon: Heart,
     description: 'Handle medical tasks and advanced wellness checks',
     permissions: ['All scout permissions', 'Log medical tasks', 'Medical priority access']
-  },
-  {
-    value: 'coordinator',
-    label: 'Coordinator',
-    icon: Shield,
-    description: 'Full administrative access and team management',
-    permissions: ['All permissions', 'Admin dashboard', 'Verify tasks', 'Manage users']
   }
+  // Removed coordinator - this role must be assigned by existing coordinators
 ];
 
 const RoleSelection = () => {
   const { profile, updateProfile, user } = useAuth();
-  const [selectedRole, setSelectedRole] = useState(profile?.role || 'volunteer');
+  const [selectedRole, setSelectedRole] = useState('volunteer');
   const [loading, setLoading] = useState(false);
 
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // If user already has a role selected and it's not the default volunteer, redirect to home
-  // This includes coordinators who shouldn't see the role selection
-  if (profile?.role && profile.role !== 'volunteer') {
+  // If user already has any role (including coordinator), redirect to home
+  if (profile?.role) {
     return <Navigate to="/" replace />;
   }
 
@@ -76,7 +69,7 @@ const RoleSelection = () => {
   };
 
   const handleRoleChange = (value: string) => {
-    setSelectedRole(value as 'coordinator' | 'scout' | 'medic' | 'communicator' | 'volunteer');
+    setSelectedRole(value as 'scout' | 'medic' | 'communicator' | 'volunteer');
   };
 
   return (
@@ -86,6 +79,9 @@ const RoleSelection = () => {
           <CardTitle className="text-center text-2xl">Choose Your Role</CardTitle>
           <p className="text-center text-muted-foreground">
             Select the role that best matches how you'd like to contribute to the community
+          </p>
+          <p className="text-center text-xs text-gray-500 mt-2">
+            Note: Coordinator role must be assigned by existing administrators
           </p>
         </CardHeader>
         <CardContent>
