@@ -29,21 +29,25 @@ export const useMapTasks = (filters: MapTasksFilters = {}) => {
   return useQuery({
     queryKey: ['map-tasks', filters],
     queryFn: async () => {
-      console.log('Fetching map tasks with filters:', filters);
+      console.log('useMapTasks: Fetching map tasks with filters:', filters);
       
       let filteredTasks = [...MOCK_TASKS];
+      console.log('useMapTasks: Starting with', filteredTasks.length, 'total tasks');
 
       // Apply status filter - fetch pending and verified as per requirements
       if (filters.status && filters.status.length > 0) {
         filteredTasks = filteredTasks.filter(task => filters.status!.includes(task.status));
+        console.log('useMapTasks: After status filter:', filteredTasks.length, 'tasks');
       } else {
         // Default to pending and verified tasks
         filteredTasks = filteredTasks.filter(task => ['pending', 'verified', 'open'].includes(task.status));
+        console.log('useMapTasks: After default status filter:', filteredTasks.length, 'tasks');
       }
 
       // Apply urgency filter
       if (filters.urgency && filters.urgency.length > 0) {
         filteredTasks = filteredTasks.filter(task => filters.urgency!.includes(task.urgency));
+        console.log('useMapTasks: After urgency filter:', filteredTasks.length, 'tasks');
       }
 
       // Apply skill tags filter
@@ -51,26 +55,62 @@ export const useMapTasks = (filters: MapTasksFilters = {}) => {
         filteredTasks = filteredTasks.filter(task => 
           task.skill_tags.some(tag => filters.skillTags!.includes(tag))
         );
+        console.log('useMapTasks: After skill tags filter:', filteredTasks.length, 'tasks');
       }
 
       // Apply geographic radius filter if coordinates and radius are provided
       if (filters.latitude && filters.longitude && filters.radius) {
-        filteredTasks = filteredTasks.filter(task => {
-          if (!task.latitude || !task.longitude) return false;
+        console.log('useMapTasks: Applying radius filter:', {
+          centerLat: filters.latitude,
+          centerLng: filters.longitude,
+          radius: filters.radius
+        });
+        
+        const tasksWithDistance = filteredTasks.map(task => {
+          if (!task.latitude || !task.longitude) {
+            return { task, distance: Infinity, hasCoords: false };
+          }
           const distance = calculateDistance(
             filters.latitude!,
             filters.longitude!,
             task.latitude,
             task.longitude
           );
-          return distance <= filters.radius!;
+          return { task, distance, hasCoords: true };
         });
+        
+        // Log some distance calculations for debugging
+        tasksWithDistance.slice(0, 5).forEach(({ task, distance, hasCoords }) => {
+          console.log('useMapTasks: Task distance:', {
+            id: task.id,
+            title: task.title.substring(0, 30),
+            taskLat: task.latitude,
+            taskLng: task.longitude,
+            distance: distance.toFixed(2) + 'km',
+            hasCoords,
+            withinRadius: distance <= filters.radius!
+          });
+        });
+        
+        filteredTasks = tasksWithDistance
+          .filter(({ distance }) => distance <= filters.radius!)
+          .map(({ task }) => task);
+          
+        console.log('useMapTasks: After radius filter (', filters.radius, 'km):', filteredTasks.length, 'tasks');
       }
 
       // Sort by created_at descending
       filteredTasks.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-      console.log('Filtered map tasks:', filteredTasks);
+      console.log('useMapTasks: Final filtered tasks:', filteredTasks.length);
+      console.log('useMapTasks: Sample tasks:', filteredTasks.slice(0, 3).map(t => ({
+        id: t.id,
+        title: t.title.substring(0, 30),
+        lat: t.latitude,
+        lng: t.longitude,
+        status: t.status
+      })));
+      
       return filteredTasks as Task[];
     },
   });

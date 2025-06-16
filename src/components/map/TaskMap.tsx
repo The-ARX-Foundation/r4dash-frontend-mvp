@@ -1,4 +1,32 @@
 
+/* 
+REFACTORING OPPORTUNITIES FOR TaskMap.tsx:
+
+1. **MapMarkers Component** - Extract marker creation and management logic (lines 85-130)
+   - handleMarkerHover, handleMarkerClick, createMarkerElement functions
+   - Marker styling and event handling
+
+2. **HeatmapLayer Component** - Extract heatmap toggle functionality (lines 132-175)
+   - Heatmap source/layer management
+   - Toggle logic and styling
+
+3. **MapControls Hook** - Extract map initialization and control logic (lines 45-80)
+   - Map setup, navigation controls, center updates
+   - Token validation and error handling
+
+4. **TaskLoadingStates Component** - Extract loading/error UI components (lines 180-220)
+   - Loading spinner, error messages, task counter
+   - Could be reused across other map components
+
+5. **useMapInteractions Hook** - Extract hover/tooltip logic
+   - Task hover state management
+   - Position calculations for tooltips
+
+6. **MapConstants** - Extract configuration constants
+   - Default coordinates, zoom levels, marker colors
+   - Map styles and animation settings
+*/
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
@@ -27,17 +55,33 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
   const [hoveredTask, setHoveredTask] = useState<Task | null>(null);
   const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null);
 
-  // Default to College Station coordinates
+  // Default to College Station coordinates - consistent across app
   const defaultCenter: [number, number] = [-96.3344, 30.6280];
 
   const { data: mapboxToken, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
+  
+  // Add debugging and make radius filtering more flexible
+  console.log('TaskMap filters:', filters);
+  console.log('Using coordinates:', {
+    lat: filters.center?.[1] || defaultCenter[1],
+    lng: filters.center?.[0] || defaultCenter[0],
+    radius: filters.radius
+  });
+  
   const { data: tasks, isLoading: tasksLoading } = useMapTasks({
     latitude: filters.center?.[1] || defaultCenter[1],
     longitude: filters.center?.[0] || defaultCenter[0],
-    radius: filters.radius,
+    radius: Math.max(filters.radius, 25), // Ensure minimum 25km radius to catch tasks
     urgency: filters.urgencyFilter,
     skillTags: filters.skillTagsFilter,
     status: ['pending', 'verified', 'open']
+  });
+  
+  // Debug task loading
+  console.log('Tasks loaded:', { 
+    count: tasks?.length || 0, 
+    loading: tasksLoading, 
+    tasks: tasks?.slice(0, 3) // Log first 3 tasks
   });
   
   const { data: heatmapData } = useBadgeHeatmap();
@@ -46,6 +90,8 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken || tokenLoading) return;
 
+    console.log('Initializing map with center:', filters.center || defaultCenter);
+    
     mapboxgl.accessToken = mapboxToken;
     
     map.current = new mapboxgl.Map({
@@ -67,6 +113,7 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
     if (!map.current) return;
     
     const targetCenter = filters.center || defaultCenter;
+    console.log('Updating map center to:', targetCenter);
     
     map.current.flyTo({
       center: targetCenter,
@@ -75,19 +122,41 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
     });
   }, [filters.center]);
 
-  // Add task markers
+  // Add task markers with better debugging
   useEffect(() => {
-    if (!map.current || !tasks || tasksLoading) return;
+    if (!map.current || !tasks || tasksLoading) {
+      console.log('Not adding markers:', { 
+        hasMap: !!map.current, 
+        hasTasks: !!tasks, 
+        tasksCount: tasks?.length, 
+        loading: tasksLoading 
+      });
+      return;
+    }
+
+    console.log('Adding markers for', tasks.length, 'tasks');
 
     // Clear existing markers
     const existingMarkers = document.querySelectorAll('.task-marker');
+    console.log('Clearing', existingMarkers.length, 'existing markers');
     existingMarkers.forEach(marker => marker.remove());
 
     // Add task markers
+    let markersAdded = 0;
     tasks.forEach(task => {
-      if (!task.latitude || !task.longitude) return;
+      if (!task.latitude || !task.longitude) {
+        console.log('Skipping task without coordinates:', task.id, task.title);
+        return;
+      }
 
       const markerColor = getMarkerColor(task);
+      console.log('Adding marker:', { 
+        id: task.id, 
+        title: task.title, 
+        lat: task.latitude, 
+        lng: task.longitude,
+        color: markerColor 
+      });
       
       const markerEl = document.createElement('div');
       markerEl.className = 'task-marker';
@@ -130,7 +199,11 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
       markerEl.addEventListener('click', () => {
         navigate(`/task/${task.id}`);
       });
+      
+      markersAdded++;
     });
+
+    console.log('Successfully added', markersAdded, 'markers to map');
 
   }, [tasks, tasksLoading, navigate]);
 
@@ -254,9 +327,19 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
           </div>
         </div>
       )}
+      
+      {/* Enhanced task counter with debugging info */}
       {tasks && (
         <div className="absolute top-4 right-4 bg-white rounded-lg p-2 shadow-md">
-          <span className="text-sm text-gray-600">{tasks.length} tasks found</span>
+          <div className="text-sm text-gray-600">
+            <div>{tasks.length} tasks found</div>
+            <div className="text-xs text-gray-400">
+              Center: {(filters.center?.[1] || defaultCenter[1]).toFixed(3)}, {(filters.center?.[0] || defaultCenter[0]).toFixed(3)}
+            </div>
+            <div className="text-xs text-gray-400">
+              Radius: {Math.max(filters.radius, 25)}km
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -17,13 +17,15 @@ const MapView: React.FC<MapViewProps> = ({ userId }) => {
   const [urgencyFilter, setUrgencyFilter] = useState<string[]>([]);
   const [skillTagsFilter, setSkillTagsFilter] = useState<string[]>([]);
   const [showHeatmap, setShowHeatmap] = useState(false);
+  
+  // Use consistent College Station coordinates
   const [mapCenter, setMapCenter] = useState<[number, number]>([
-    -96.3365, // Texas A&M University longitude
-    30.6187   // Texas A&M University latitude
+    -96.3344, // College Station longitude (consistent with TaskMap)
+    30.6280   // College Station latitude (consistent with TaskMap)
   ]);
 
   const handleLocationSearch = (coordinates: [number, number], placeName: string) => {
-    console.log('Setting map center to:', coordinates, 'for', placeName);
+    console.log('MapView: Setting map center to:', coordinates, 'for', placeName);
     setMapCenter(coordinates);
   };
 
@@ -45,7 +47,7 @@ const MapView: React.FC<MapViewProps> = ({ userId }) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        console.log('Got current location:', latitude, longitude);
+        console.log('MapView: Got current location:', latitude, longitude);
         setMapCenter([longitude, latitude]);
         toast.success('Location updated to your current position');
       },
