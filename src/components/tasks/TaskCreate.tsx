@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useTaskCreation } from '@/hooks/useTasks';
-import { uploadTaskImage } from '@/utils/imageUpload';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/ui/navigation';
@@ -21,10 +19,8 @@ const TaskCreate: React.FC<TaskCreateProps> = ({ userId }) => {
   const [location, setLocation] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
-
-  const taskCreation = useTaskCreation();
 
   const handleBack = () => {
     navigate('/');
@@ -50,28 +46,11 @@ const TaskCreate: React.FC<TaskCreateProps> = ({ userId }) => {
       return;
     }
 
-    try {
-      setIsUploading(true);
-      
-      let imageUrl = '';
-      if (image) {
-        try {
-          imageUrl = await uploadTaskImage(image, userId);
-        } catch (imageError) {
-          console.log('Image upload failed, continuing without image:', imageError);
-          toast.error('Image upload failed, but task will be created without image');
-        }
-      }
-      
-      await taskCreation.mutateAsync({
-        title: title.trim(),
-        description: description.trim() || '',
-        location: location.trim() || '',
-        image_url: imageUrl,
-        user_id: userId,
-      });
-
-      toast.success('Task created successfully! Others can now help complete it.');
+    setIsCreating(true);
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      toast.success('Task created successfully! (Demo mode - no actual task created)');
       
       // Reset form
       setTitle('');
@@ -79,17 +58,11 @@ const TaskCreate: React.FC<TaskCreateProps> = ({ userId }) => {
       setLocation('');
       setImage(null);
       setImagePreview(null);
+      setIsCreating(false);
       
-      // Navigate back to home after successful creation
-      setTimeout(() => {
-        navigate('/');
-      }, 1500);
-    } catch (error) {
-      console.error('Error creating task:', error);
-      toast.error('Failed to create task. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
+      // Navigate back to home
+      navigate('/');
+    }, 1000);
   };
 
   return (
@@ -107,11 +80,16 @@ const TaskCreate: React.FC<TaskCreateProps> = ({ userId }) => {
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               <CardTitle className="text-xl font-bold">Create New Task</CardTitle>
-              <div className="w-8" /> {/* Spacer for centering */}
+              <div className="w-8" />
             </div>
             <p className="text-sm text-gray-600 text-center">
               Post a task for community members to help complete
             </p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mt-2">
+              <p className="text-xs text-yellow-700 text-center">
+                Demo Mode: Tasks won't be saved to database
+              </p>
+            </div>
           </CardHeader>
           
           <CardContent>
@@ -200,9 +178,9 @@ const TaskCreate: React.FC<TaskCreateProps> = ({ userId }) => {
                 <Button
                   type="submit"
                   className="flex-1"
-                  disabled={taskCreation.isPending || isUploading}
+                  disabled={isCreating}
                 >
-                  {taskCreation.isPending || isUploading ? 'Creating Task...' : 'Create Task'}
+                  {isCreating ? 'Creating Task...' : 'Create Task'}
                 </Button>
               </div>
             </form>

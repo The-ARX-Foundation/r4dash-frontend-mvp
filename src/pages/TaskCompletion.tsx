@@ -1,12 +1,11 @@
 
 import TaskCompletion from '@/components/tasks/TaskCompletion';
+import { useMockAuth } from '@/hooks/useMockData';
 
 const TaskCompletionPage = () => {
-  // In a real app, you'd get this from your auth context
-  // For demo purposes, using a placeholder ID
-  const userId = "demo-user-id";
+  const { user } = useMockAuth();
 
-  return <TaskCompletion userId={userId} />;
+  return <TaskCompletion userId={user.id} />;
 };
 
 export default TaskCompletionPage;

@@ -2,33 +2,15 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRole } from '@/hooks/useRole';
-import { Navigate } from 'react-router-dom';
 import Navigation from '@/components/ui/navigation';
-import { Shield, Eye, Heart, MessageCircle, Users } from 'lucide-react';
-
-const roleIcons = {
-  coordinator: Shield,
-  scout: Eye,
-  medic: Heart,
-  communicator: MessageCircle,
-  volunteer: Users
-};
+import { Shield, Users } from 'lucide-react';
+import { useMockAuth, useMockRole } from '@/hooks/useMockData';
 
 const Profile = () => {
-  const { user, profile } = useAuth();
-  const { role, permissions } = useRole();
+  const { user, profile } = useMockAuth();
+  const { role, permissions } = useMockRole();
 
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  if (!profile) {
-    return <Navigate to="/role-selection" replace />;
-  }
-
-  const RoleIcon = roleIcons[role as keyof typeof roleIcons] || Users;
+  const RoleIcon = role === 'coordinator' ? Shield : Users;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -37,7 +19,7 @@ const Profile = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <RoleIcon className="w-6 h-6" />
-              User Profile
+              User Profile (Demo)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -46,7 +28,7 @@ const Profile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-600">Name</label>
-                  <p className="text-lg">{profile.name || 'Not set'}</p>
+                  <p className="text-lg">{profile?.name || 'Demo User'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Email</label>
@@ -60,8 +42,8 @@ const Profile = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Member Since</label>
-                  <p className="text-lg">{new Date(profile.created_at).toLocaleDateString()}</p>
+                  <label className="text-sm font-medium text-gray-600">Status</label>
+                  <p className="text-lg text-green-600">Demo Mode Active</p>
                 </div>
               </div>
             </div>
@@ -80,10 +62,13 @@ const Profile = () => {
               </div>
             </div>
 
-            <div className="pt-4">
-              <Button variant="outline" className="w-full" asChild>
-                <a href="/role-selection">Change Role</a>
-              </Button>
+            <div className="pt-4 text-center">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-700">
+                  🚀 This is a demo profile with coordinator permissions. 
+                  All features are accessible for testing purposes.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

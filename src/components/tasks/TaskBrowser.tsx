@@ -5,14 +5,13 @@ import { MapPin, User, Clock, Eye, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useOpenTasks, useTaskClaim } from '@/hooks/useTasks';
-import { getImageUrl } from '@/utils/imageUpload';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/ui/navigation';
 import TaskFilters from './TaskFilters';
 import TaskDetailsModal from './TaskDetailsModal';
 import { Task } from '@/types/task';
+import { useMockTasks } from '@/hooks/useMockData';
 
 interface TaskBrowserProps {
   userId: string;
@@ -20,18 +19,11 @@ interface TaskBrowserProps {
 
 const TaskBrowser: React.FC<TaskBrowserProps> = ({ userId }) => {
   const navigate = useNavigate();
-  const { data: openTasks, isLoading, error } = useOpenTasks();
-  const taskClaim = useTaskClaim();
+  const { openTasks } = useMockTasks();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
-
-  // Debug logging
-  console.log('TaskBrowser - userId:', userId);
-  console.log('TaskBrowser - openTasks:', openTasks);
-  console.log('TaskBrowser - isLoading:', isLoading);
-  console.log('TaskBrowser - error:', error);
 
   const filteredTasks = useMemo(() => {
     if (!openTasks) return [];
@@ -62,63 +54,10 @@ const TaskBrowser: React.FC<TaskBrowserProps> = ({ userId }) => {
   }, [openTasks, searchTerm, locationFilter, sortBy]);
 
   const handleClaimTask = async (taskId: string) => {
-    try {
-      await taskClaim.mutateAsync({
-        taskId,
-        claim: {
-          claimed_by: userId,
-          claimed_at: new Date().toISOString(),
-          status: 'claimed'
-        }
-      });
-      
-      toast.success('Task claimed! You can now work on completing it.');
-      setSelectedTask(null);
-    } catch (error) {
-      console.error('Error claiming task:', error);
-      toast.error('Failed to claim task. It may have been claimed by someone else.');
-    }
+    // Mock claim functionality
+    toast.success('Task claimed! (This is a demo - no actual claiming happened)');
+    setSelectedTask(null);
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <div className="flex-1 p-4 max-w-4xl mx-auto w-full">
-          <div className="flex items-center gap-4 mb-6">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <h1 className="text-3xl font-bold">Available Tasks</h1>
-          </div>
-          <div className="text-center py-8">Loading available tasks...</div>
-        </div>
-        <Navigation />
-      </div>
-    );
-  }
-
-  if (error) {
-    console.error('TaskBrowser error details:', error);
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <div className="flex-1 p-4 max-w-4xl mx-auto w-full">
-          <div className="flex items-center gap-4 mb-6">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <h1 className="text-3xl font-bold">Available Tasks</h1>
-          </div>
-          <div className="text-center py-8 text-red-600">
-            <p>Error loading tasks: {error.message || 'Unknown error'}</p>
-            <p className="text-sm mt-2">Please check the console for more details.</p>
-          </div>
-        </div>
-        <Navigation />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -143,24 +82,7 @@ const TaskBrowser: React.FC<TaskBrowserProps> = ({ userId }) => {
           totalTasks={filteredTasks.length}
         />
 
-        {openTasks && openTasks.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-8">
-              <h3 className="text-lg font-semibold mb-2">No Tasks in Database</h3>
-              <p className="text-gray-600 mb-4">
-                The database appears to be empty. This might be due to:
-              </p>
-              <ul className="text-sm text-gray-500 mb-4 space-y-1">
-                <li>• Auto-seeding not working</li>
-                <li>• RLS policies blocking data access</li>
-                <li>• Database connection issues</li>
-              </ul>
-              <Button onClick={() => navigate('/')}>
-                Go Back to Home
-              </Button>
-            </CardContent>
-          </Card>
-        ) : filteredTasks.length === 0 ? (
+        {filteredTasks.length === 0 ? (
           <Card>
             <CardContent className="text-center py-8">
               <h3 className="text-lg font-semibold mb-2">No Matching Tasks</h3>
@@ -201,14 +123,6 @@ const TaskBrowser: React.FC<TaskBrowserProps> = ({ userId }) => {
                     </div>
                   )}
                   
-                  {task.image_url && (
-                    <img 
-                      src={getImageUrl(task.image_url)} 
-                      alt="Task reference" 
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                  )}
-                  
                   <div className="flex items-center justify-between pt-2">
                     <div className="flex items-center text-sm text-gray-500">
                       <User className="w-4 h-4 mr-1" />
@@ -226,7 +140,7 @@ const TaskBrowser: React.FC<TaskBrowserProps> = ({ userId }) => {
                       </Button>
                       <Button
                         onClick={() => handleClaimTask(task.id)}
-                        disabled={taskClaim.isPending || task.user_id === userId}
+                        disabled={task.user_id === userId}
                         size="sm"
                       >
                         {task.user_id === userId ? 'Your Task' : 'Help Out'}
@@ -245,7 +159,7 @@ const TaskBrowser: React.FC<TaskBrowserProps> = ({ userId }) => {
           onClose={() => setSelectedTask(null)}
           onClaim={handleClaimTask}
           userId={userId}
-          isLoading={taskClaim.isPending}
+          isLoading={false}
         />
       </div>
       <Navigation />
