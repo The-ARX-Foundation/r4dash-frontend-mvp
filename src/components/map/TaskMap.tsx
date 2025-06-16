@@ -1,14 +1,12 @@
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useMapTasks, useBadgeHeatmap } from '@/hooks/useMapTasks';
 import { useMapboxToken } from '@/hooks/useMapboxToken';
-import { useTaskClaim } from '@/hooks/useTasks';
 import { Task } from '@/types/task';
-import { toast } from 'sonner';
-import TaskPopup from './TaskPopup';
-import { createRoot } from 'react-dom/client';
+import TaskHoverTooltip from './TaskHoverTooltip';
 
 interface TaskMapProps {
   userId: string;
@@ -22,11 +20,12 @@ interface TaskMapProps {
 }
 
 const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
+  const navigate = useNavigate();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const heatmapLayer = useRef<string | null>(null);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [popup, setPopup] = useState<mapboxgl.Popup | null>(null);
+  const [hoveredTask, setHoveredTask] = useState<Task | null>(null);
+  const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null);
 
   const { data: mapboxToken, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
   const { data: tasks, isLoading: tasksLoading } = useMapTasks({
@@ -39,7 +38,6 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
   });
   
   const { data: heatmapData } = useBadgeHeatmap();
-  const taskClaim = useTaskClaim();
 
   // Initialize map
   useEffect(() => {
@@ -95,27 +93,41 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
       markerEl.style.border = '3px solid white';
       markerEl.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
       markerEl.style.cursor = 'pointer';
-      markerEl.style.transition = 'transform 0.2s ease';
+      markerEl.style.transition = 'box-shadow 0.2s ease';
 
-      // Add hover effect
-      markerEl.addEventListener('mouseenter', () => {
-        markerEl.style.transform = 'scale(1.2)';
+      // Add hover effect using box-shadow instead of transform
+      markerEl.addEventListener('mouseenter', (e) => {
+        markerEl.style.boxShadow = '0 4px 16px rgba(0,0,0,0.4)';
+        markerEl.style.zIndex = '10';
+        
+        const rect = markerEl.getBoundingClientRect();
+        const containerRect = mapContainer.current!.getBoundingClientRect();
+        
+        setHoverPosition({
+          x: rect.left - containerRect.left + rect.width / 2,
+          y: rect.top - containerRect.top
+        });
+        setHoveredTask(task);
       });
       
       markerEl.addEventListener('mouseleave', () => {
-        markerEl.style.transform = 'scale(1)';
+        markerEl.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+        markerEl.style.zIndex = '1';
+        setHoveredTask(null);
+        setHoverPosition(null);
       });
 
       const marker = new mapboxgl.Marker(markerEl)
         .setLngLat([task.longitude, task.latitude])
         .addTo(map.current!);
 
+      // Click handler to navigate to task detail page
       markerEl.addEventListener('click', () => {
-        handleMarkerClick(task, [task.longitude!, task.latitude!]);
+        navigate(`/task/${task.id}`);
       });
     });
 
-  }, [tasks, tasksLoading]);
+  }, [tasks, tasksLoading, navigate]);
 
   // Handle heatmap toggle
   useEffect(() => {
@@ -189,67 +201,6 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
     return '#3b82f6'; // Blue default
   };
 
-  const handleMarkerClick = (task: Task, coordinates: [number, number]) => {
-    if (popup) {
-      popup.remove();
-    }
-
-    const newPopup = new mapboxgl.Popup({
-      closeButton: false,
-      closeOnClick: false,
-      offset: 25
-    })
-      .setLngLat(coordinates)
-      .setHTML('<div id="popup-content"></div>')
-      .addTo(map.current!);
-
-    setPopup(newPopup);
-    setSelectedTask(task);
-
-    // Render React component in popup
-    const popupContent = document.getElementById('popup-content');
-    if (popupContent) {
-      const root = createRoot(popupContent);
-      root.render(
-        <TaskPopup
-          task={task}
-          onClaim={handleClaimTask}
-          onClose={() => {
-            newPopup.remove();
-            setPopup(null);
-            setSelectedTask(null);
-          }}
-          isLoading={taskClaim.isPending}
-          userId={userId}
-        />
-      );
-    }
-  };
-
-  const handleClaimTask = async (taskId: string) => {
-    try {
-      await taskClaim.mutateAsync({
-        taskId,
-        claim: {
-          claimed_by: userId,
-          claimed_at: new Date().toISOString(),
-          status: 'claimed'
-        }
-      });
-      
-      toast.success('Task claimed successfully!');
-      
-      if (popup) {
-        popup.remove();
-        setPopup(null);
-        setSelectedTask(null);
-      }
-    } catch (error) {
-      console.error('Error claiming task:', error);
-      toast.error('Failed to claim task. It may have been claimed by someone else.');
-    }
-  };
-
   // Loading state
   if (tokenLoading) {
     return (
@@ -282,6 +233,14 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
   return (
     <div className="relative w-full h-96 rounded-lg overflow-hidden">
       <div ref={mapContainer} className="absolute inset-0" />
+      
+      {hoveredTask && hoverPosition && (
+        <TaskHoverTooltip
+          task={hoveredTask}
+          position={hoverPosition}
+        />
+      )}
+      
       {tasksLoading && (
         <div className="absolute top-4 left-4 bg-white rounded-lg p-2 shadow-md">
           <div className="flex items-center gap-2">

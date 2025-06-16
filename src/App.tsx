@@ -10,6 +10,7 @@ import TaskBrowserPage from "./pages/TaskBrowser";
 import TaskCompletionPage from "./pages/TaskCompletion";
 import AdminTaskQueuePage from "./pages/AdminTaskQueue";
 import MapViewPage from "./pages/MapView";
+import TaskDetail from "./pages/TaskDetail";
 import NotFound from "./pages/NotFound";
 import ProfilePage from "./pages/Profile";
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/complete-tasks" element={<TaskCompletionPage />} />
           <Route path="/admin/tasks" element={<AdminTaskQueuePage />} />
           <Route path="/map" element={<MapViewPage />} />
+          <Route path="/task/:taskId" element={<TaskDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
