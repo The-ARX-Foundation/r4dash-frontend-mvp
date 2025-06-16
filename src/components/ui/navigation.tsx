@@ -4,13 +4,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { Plus, Search, CheckSquare, Shield, Map, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRole } from '@/hooks/useRole';
+import { useMockAuth, useMockRole } from '@/hooks/useMockData';
 
 const Navigation = () => {
   const location = useLocation();
-  const { user, profile, signOut } = useAuth();
-  const { hasPermission } = useRole();
+  const { user, profile } = useMockAuth();
+  const { hasPermission } = useMockRole();
   
   if (!user) {
     return (
@@ -31,6 +30,11 @@ const Navigation = () => {
     { path: '/complete-tasks', icon: CheckSquare, label: 'My Tasks', color: 'bg-orange-500', show: hasPermission('canViewTasks') },
     { path: '/admin/tasks', icon: Shield, label: 'Admin', color: 'bg-red-500', show: hasPermission('canAccessAdmin') },
   ].filter(item => item.show);
+
+  const handleSignOut = () => {
+    // Mock sign out - just a placeholder for the MVP
+    console.log('Sign out clicked - this is just a demo');
+  };
 
   return (
     <Card className="fixed bottom-0 left-0 right-0 p-4 rounded-t-lg border-t bg-white shadow-lg z-50 md:relative md:rounded-lg md:mb-6">
@@ -62,7 +66,7 @@ const Navigation = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={signOut}
+            onClick={handleSignOut}
             className="flex flex-col items-center gap-1 h-auto py-2 px-3 text-red-600 hover:text-red-700"
           >
             <LogOut className="w-5 h-5" />
