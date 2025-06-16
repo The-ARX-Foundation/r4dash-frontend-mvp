@@ -27,10 +27,13 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
   const [hoveredTask, setHoveredTask] = useState<Task | null>(null);
   const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null);
 
+  // Default to College Station coordinates
+  const defaultCenter: [number, number] = [-96.3344, 30.6280];
+
   const { data: mapboxToken, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
   const { data: tasks, isLoading: tasksLoading } = useMapTasks({
-    latitude: filters.center?.[1],
-    longitude: filters.center?.[0],
+    latitude: filters.center?.[1] || defaultCenter[1],
+    longitude: filters.center?.[0] || defaultCenter[0],
     radius: filters.radius,
     urgency: filters.urgencyFilter,
     skillTags: filters.skillTagsFilter,
@@ -48,7 +51,7 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/light-v11',
-      center: filters.center || [-73.9857, 40.7484], // Default to NYC
+      center: filters.center || defaultCenter,
       zoom: 12
     });
 
@@ -61,10 +64,12 @@ const TaskMap: React.FC<TaskMapProps> = ({ userId, filters, showHeatmap }) => {
 
   // Update map center when filters change
   useEffect(() => {
-    if (!map.current || !filters.center) return;
+    if (!map.current) return;
+    
+    const targetCenter = filters.center || defaultCenter;
     
     map.current.flyTo({
-      center: filters.center,
+      center: targetCenter,
       zoom: 12,
       duration: 1000
     });
