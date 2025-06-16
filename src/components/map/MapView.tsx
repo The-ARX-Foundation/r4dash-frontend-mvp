@@ -28,21 +28,54 @@ const MapView: React.FC<MapViewProps> = ({ userId }) => {
   };
 
   const handleCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setMapCenter([longitude, latitude]);
-          toast.success('Location updated to your current position');
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          toast.error('Could not get your current location');
-        }
-      );
-    } else {
+    if (!navigator.geolocation) {
       toast.error('Geolocation is not supported by this browser');
+      return;
     }
+
+    // Check if we're on HTTPS or localhost (required for geolocation)
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      toast.error('Geolocation requires HTTPS or localhost');
+      // Fallback to College Station
+      setMapCenter([-96.3344, 30.6280]);
+      toast.success('Using College Station as default location');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        console.log('Got current location:', latitude, longitude);
+        setMapCenter([longitude, latitude]);
+        toast.success('Location updated to your current position');
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        let errorMessage = 'Could not get your current location';
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location access denied. Using College Station as default.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location unavailable. Using College Station as default.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Location request timed out. Using College Station as default.';
+            break;
+        }
+        
+        toast.error(errorMessage);
+        // Fallback to College Station center
+        setMapCenter([-96.3344, 30.6280]);
+        toast.success('Using College Station as default location');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 600000 // 10 minutes
+      }
+    );
   };
 
   return (
