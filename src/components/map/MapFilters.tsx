@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
-import { MapPin, Filter, Target, Tags, Search } from 'lucide-react';
+import { MapPin, Filter, Target, Tags, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
+import { useMapboxGeocoding } from '@/hooks/useMapboxGeocoding';
+import { toast } from 'sonner';
 
 interface MapFiltersProps {
   radius: number;
@@ -15,7 +17,7 @@ interface MapFiltersProps {
   onRadiusChange: (radius: number) => void;
   onUrgencyChange: (urgency: string[]) => void;
   onSkillTagsChange: (tags: string[]) => void;
-  onLocationSearch: (query: string) => void;
+  onLocationSearch: (coordinates: [number, number], placeName: string) => void;
   onCurrentLocation: () => void;
 }
 
@@ -30,6 +32,13 @@ const MapFilters: React.FC<MapFiltersProps> = ({
   onCurrentLocation
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  
+  const { data: geocodingResults, isLoading: geocodingLoading } = useMapboxGeocoding(
+    searchQuery,
+    isSearching
+  );
+
   const urgencyLevels = ['low', 'medium', 'high', 'critical'];
   const skillTags = ['physical', 'technology', 'teaching', 'elderly-care', 'pets', 'outdoor', 'moving', 'academic'];
 
@@ -51,8 +60,35 @@ const MapFilters: React.FC<MapFiltersProps> = ({
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLocationSearch(searchQuery);
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
   };
+
+  // Handle geocoding results
+  React.useEffect(() => {
+    if (geocodingResults && geocodingResults.length > 0 && isSearching) {
+      const firstResult = geocodingResults[0];
+      const [longitude, latitude] = firstResult.center;
+      
+      console.log('Using geocoding result:', firstResult.place_name, [longitude, latitude]);
+      onLocationSearch([longitude, latitude], firstResult.place_name);
+      toast.success(`Found: ${firstResult.place_name}`);
+      
+      setIsSearching(false);
+    } else if (isSearching && geocodingResults && geocodingResults.length === 0) {
+      toast.error('No results found for that location');
+      setIsSearching(false);
+    }
+  }, [geocodingResults, isSearching, onLocationSearch]);
+
+  // Handle geocoding errors
+  React.useEffect(() => {
+    if (isSearching && !geocodingLoading && !geocodingResults) {
+      toast.error('Failed to search for location');
+      setIsSearching(false);
+    }
+  }, [isSearching, geocodingLoading, geocodingResults]);
 
   const clearAllFilters = () => {
     onUrgencyChange([]);
@@ -72,14 +108,24 @@ const MapFilters: React.FC<MapFiltersProps> = ({
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search location (e.g., 'Central Park, NYC')"
+                placeholder="Search location (e.g., 'College Station, TX')"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
+                disabled={isSearching || geocodingLoading}
               />
             </div>
-            <Button type="submit" variant="outline" size="sm">
-              Search
+            <Button 
+              type="submit" 
+              variant="outline" 
+              size="sm"
+              disabled={isSearching || geocodingLoading || !searchQuery.trim()}
+            >
+              {isSearching || geocodingLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                'Search'
+              )}
             </Button>
             <Button onClick={onCurrentLocation} variant="outline" size="sm">
               <Target className="w-4 h-4" />
@@ -123,7 +169,6 @@ const MapFilters: React.FC<MapFiltersProps> = ({
             </div>
           </div>
 
-          {/* Skill Tags Filter */}
           <div className="space-y-2">
             <label className="text-sm font-medium block flex items-center gap-2">
               <Tags className="w-4 h-4 text-gray-500" />

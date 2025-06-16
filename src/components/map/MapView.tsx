@@ -17,12 +17,14 @@ const MapView: React.FC<MapViewProps> = ({ userId }) => {
   const [urgencyFilter, setUrgencyFilter] = useState<string[]>([]);
   const [skillTagsFilter, setSkillTagsFilter] = useState<string[]>([]);
   const [showHeatmap, setShowHeatmap] = useState(false);
-  const [mapCenter, setMapCenter] = useState<[number, number] | undefined>();
+  const [mapCenter, setMapCenter] = useState<[number, number]>([
+    -96.3365, // Texas A&M University longitude
+    30.6187   // Texas A&M University latitude
+  ]);
 
-  const handleLocationSearch = (query: string) => {
-    // In a real app, you'd use a geocoding service here
-    console.log('Searching for location:', query);
-    toast.success('Location search would be implemented with a geocoding service');
+  const handleLocationSearch = (coordinates: [number, number], placeName: string) => {
+    console.log('Setting map center to:', coordinates, 'for', placeName);
+    setMapCenter(coordinates);
   };
 
   const handleCurrentLocation = () => {
