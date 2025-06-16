@@ -13,6 +13,7 @@ import MapViewPage from "./pages/MapView";
 import TaskDetail from "./pages/TaskDetail";
 import NotFound from "./pages/NotFound";
 import ProfilePage from "./pages/Profile";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
         <Routes>
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/" element={<Index />} />
+          <Route path="/about" element={<About />} />
           <Route path="/browse-tasks" element={<TaskBrowserPage />} />
           <Route path="/create-task" element={<TaskCreatePage />} />
           <Route path="/complete-tasks" element={<TaskCompletionPage />} />

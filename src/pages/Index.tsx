@@ -1,14 +1,13 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Search, User, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navigation from '@/components/ui/navigation';
-import { useMockAuth, useMockRole, useMockTasks } from '@/hooks/useMockData';
+import { useMockAuth, useMockRole } from '@/hooks/useMockData';
 
 const Index = () => {
   const { user, profile } = useMockAuth();
   const { role, isCoordinator } = useMockRole();
-  const { openTasks } = useMockTasks();
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 pb-20">
@@ -16,10 +15,10 @@ const Index = () => {
         {/* Header */}
         <div className="text-center py-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Community Helper
+            R4Dash
           </h1>
           <p className="text-gray-600">
-            Connect, help, and make a difference
+            Turn goodwill into impact—at scale
           </p>
           <p className="text-sm text-blue-600 mt-2">
             Welcome back, {profile?.name || user.email}!
@@ -28,21 +27,6 @@ const Index = () => {
             </span>
           </p>
         </div>
-
-        {/* Status Card */}
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-green-800">System Status</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-xs text-green-700 space-y-1">
-              <div>✅ Frontend MVP Ready</div>
-              <div>✅ Mock Data Loaded ({openTasks.length} tasks available)</div>
-              <div>✅ All Features Accessible (Role: {role})</div>
-              <div>✅ No Authentication Required</div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Coordinator Actions */}
         {isCoordinator && (
@@ -115,6 +99,13 @@ const Index = () => {
               </Card>
             </Link>
           </div>
+        </div>
+
+        {/* Footer with About Link */}
+        <div className="text-center pt-6 border-t border-gray-200">
+          <Link to="/about" className="text-sm text-blue-600 hover:text-blue-800 underline">
+            About R4Dash
+          </Link>
         </div>
       </div>
       <Navigation />
