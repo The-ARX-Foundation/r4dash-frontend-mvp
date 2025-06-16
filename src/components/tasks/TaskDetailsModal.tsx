@@ -43,15 +43,18 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold pr-8">{task.title}</DialogTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="absolute right-4 top-4"
-          >
-            <X className="w-4 h-4" />
-          </Button>
+          <div className="flex justify-between items-start">
+            <DialogTitle className="text-xl font-bold">{task.title}</DialogTitle>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="flex-shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </DialogHeader>
         
         <div className="space-y-4">
@@ -112,6 +115,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
           {task.status === 'open' && onClaim && (
             <div className="flex gap-3 pt-4 border-t">
               <Button
+                type="button"
                 onClick={() => onClaim(task.id)}
                 disabled={isLoading || task.user_id === userId}
                 className="flex-1"

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { MapPin, Clock, User, AlertTriangle } from 'lucide-react';
+import { MapPin, Clock, User, AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,9 +46,15 @@ const TaskPopup: React.FC<TaskPopupProps> = ({
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg line-clamp-2">{task.title}</CardTitle>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            ×
-          </button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="flex-shrink-0 p-1 h-auto"
+          >
+            <X className="w-4 h-4" />
+          </Button>
         </div>
         <div className="flex items-center gap-2">
           <Badge className={getStatusColor(task.status || 'open')}>
@@ -105,6 +111,7 @@ const TaskPopup: React.FC<TaskPopupProps> = ({
         
         <div className="flex gap-2 pt-2">
           <Button
+            type="button"
             onClick={() => onClaim(task.id)}
             disabled={isLoading || task.user_id === userId}
             className="flex-1"
